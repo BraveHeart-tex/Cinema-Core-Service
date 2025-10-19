@@ -1,0 +1,17 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/main ./cmd/app"
+bin = "tmp/main"
+full_bin = "./tmp/main"
+include_ext = ["go", "tpl", "tmpl", "html"]
+exclude_dir = ["assets", "tmp", "vendor"]
+delay = 300 # ms
+
+[log]
+color = true
+time = true
+
+[misc]
+clean_on_exit = true

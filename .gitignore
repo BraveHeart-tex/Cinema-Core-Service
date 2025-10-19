@@ -63,7 +63,7 @@ log/
 
 # Air live reload (if using cosmtrek/air)
 tmp/
-.air.toml.local
+.air.toml.*
 
 # Testing
 coverage.out
