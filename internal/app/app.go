@@ -1,11 +1,18 @@
 package app
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers"
+	"github.com/gin-gonic/gin"
+)
 
-func SetupRouter() *gin.Engine {
+type App struct {
+	UserHandler *handlers.UserHandler
+}
+
+func SetupRouter(appCtx *App) *gin.Engine {
 	r := gin.Default()
 
-	RegisterUserRoutes(r)
+	RegisterUserRoutes(r, appCtx.UserHandler)
 
 	return r
 }
