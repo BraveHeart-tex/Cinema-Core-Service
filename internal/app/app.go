@@ -11,8 +11,8 @@ type App struct {
 
 func SetupRouter(appCtx *App) *gin.Engine {
 	r := gin.Default()
-
-	RegisterUserRoutes(r, appCtx.UserHandler)
+	api := r.Group("/api")
+	RegisterUserRoutes(api, appCtx.UserHandler)
 
 	return r
 }

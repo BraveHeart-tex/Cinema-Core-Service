@@ -5,6 +5,7 @@ import (
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/app"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/config"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
@@ -16,13 +17,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := config.ConnectDatabase(cfg.DatabaseURL)
+	database, err := config.ConnectDatabase(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("DB connection failed: %v", err)
 	}
 
+	db.Migrate(database)
+
 	// Setup DI
-	userRepo := repositories.NewUserRepository(db)
+	userRepo := repositories.NewUserRepository(database)
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 

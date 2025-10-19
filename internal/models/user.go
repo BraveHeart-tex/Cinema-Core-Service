@@ -13,6 +13,6 @@ type User struct {
 	Surname        string
 	Email          string `gorm:"uniqueIndex;not null"`
 	HashedPassword string `gorm:"not null"`
-	Role           string `gorm:"type:enum('admin','regular');default:'regular'"`
+	Role           string `gorm:"type:varchar(20);default:'regular'"`
 	CreatedAt      time.Time
 }

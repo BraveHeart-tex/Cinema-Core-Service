@@ -26,6 +26,9 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) Create(user *models.User) error {
-	return r.db.Create(user).Error
+func (r *UserRepository) Create(user *models.User) (*models.User, error) {
+	if err := r.db.Create(user).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
 }

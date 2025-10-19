@@ -42,9 +42,10 @@ func (s *UserService) CreateUser(data CreateUserData) (*models.User, error) {
 		Role:           models.UserRole,
 	}
 
-	if err := s.repo.Create(user); err != nil {
+	createdUser, err := s.repo.Create(user)
+	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return createdUser, nil
 }
