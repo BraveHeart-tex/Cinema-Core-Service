@@ -1,0 +1,97 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Go build cache
+.cache/
+
+# Binary output
+bin/
+dist/
+build/
+
+# Application binary (customize with your app name)
+cinema-core
+main
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Configuration files with secrets
+config.yaml
+config.yml
+config.json
+!config.example.yaml
+!config.example.yml
+!config.example.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+*.log
+logs/
+log/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Air live reload (if using cosmtrek/air)
+tmp/
+.air.toml.local
+
+# Testing
+coverage.out
+coverage.html
+*.cover
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Docker
+docker-compose.override.yml
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Upload directories (user-uploaded content)
+uploads/
+public/uploads/
+
+# Documentation builds
+docs/_build/
+
+# OS specific
+Thumbs.db
+.DS_Store
