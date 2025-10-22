@@ -26,7 +26,9 @@ func main() {
 
 	// Setup DI
 	userRepo := repositories.NewUserRepository(database)
-	userService := services.NewUserService(userRepo)
+	sessionRepo := repositories.NewSessionRepository(database)
+	sessionService := services.NewSessionService(sessionRepo)
+	userService := services.NewUserService(userRepo, sessionService)
 	userHandler := handlers.NewUserHandler(userService)
 
 	appCtx := &app.App{

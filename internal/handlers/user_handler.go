@@ -29,7 +29,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.service.CreateUser(services.CreateUserData{
+	result, err := h.service.CreateUser(services.CreateUserData{
 		Name:     req.Name,
 		Surname:  req.Surname,
 		Email:    req.Email,
@@ -41,10 +41,15 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{
-		"id":    user.ID,
-		"name":  user.Name,
-		"email": user.Email,
-		"role":  user.Role,
+		"user": gin.H{
+			"id":    result.User.Id,
+			"name":  result.User.Name,
+			"email": result.User.Email,
+			"role":  result.User.Role,
+		},
+		"session": gin.H{
+			"token": result.Session.Token,
+		},
 	})
 }
 

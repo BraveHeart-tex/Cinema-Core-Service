@@ -9,11 +9,15 @@ import (
 )
 
 type UserService struct {
-	repo *repositories.UserRepository
+	repo          *repositories.UserRepository
+	sessionService *SessionService
 }
 
-func NewUserService(repo *repositories.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo *repositories.UserRepository, sessionService *SessionService) *UserService {
+	return &UserService{
+		repo:          repo,
+		sessionService: sessionService,
+	}
 }
 
 type CreateUserData struct {
@@ -23,7 +27,12 @@ type CreateUserData struct {
 	Password string
 }
 
-func (s *UserService) CreateUser(data CreateUserData) (*models.User, error) {
+type CreateUserResult struct {
+	User    *models.User
+	Session *models.SessionWithToken
+}
+
+func (s *UserService) CreateUser(data CreateUserData) (*CreateUserResult, error) {
 	existing, _ := s.repo.GetByEmail(data.Email)
 	if existing != nil {
 		return nil, errors.New("user already exists with the given email")
@@ -47,5 +56,14 @@ func (s *UserService) CreateUser(data CreateUserData) (*models.User, error) {
 		return nil, err
 	}
 
-	return createdUser, nil
+	// Create session for the new user
+	session, err := s.sessionService.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateUserResult{
+		User:    createdUser,
+		Session: session,
+	}, nil
 }
