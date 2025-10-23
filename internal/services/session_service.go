@@ -18,7 +18,10 @@ func NewSessionService(repo *repositories.SessionRepository) *SessionService {
 	return &SessionService{repo: repo}
 }
 
-const sessionExpiresIn = 30 * 24 * time.Hour
+var (
+	inactivityTimeout     = 10 * 24 * time.Hour // 10 days
+	activityCheckInterval = 1 * time.Hour       // 1 hour
+)
 
 func (s *SessionService) CreateSession() (*models.SessionWithToken, error) {
 	now := time.Now()
@@ -54,6 +57,8 @@ func (s *SessionService) CreateSession() (*models.SessionWithToken, error) {
 }
 
 func (s *SessionService) ValidateSessionToken(token string) (*models.Session, error) {
+	now := time.Now()
+
 	parts := strings.Split(token, ".")
 	if len(parts) != 2 {
 		return nil, errors.New("invalid token format")
@@ -64,10 +69,7 @@ func (s *SessionService) ValidateSessionToken(token string) (*models.Session, er
 	if err != nil {
 		return nil, err
 	}
-
-	// Check expiration
-	if time.Since(session.CreatedAt) >= sessionExpiresIn {
-		_ = s.repo.DeleteSession(sessionID)
+	if session == nil {
 		return nil, nil
 	}
 
@@ -77,7 +79,10 @@ func (s *SessionService) ValidateSessionToken(token string) (*models.Session, er
 		return nil, nil
 	}
 
-	s.repo.UpdateSessionLastVerifiedAt(sessionID)
+	if time.Since(session.LastVerifiedAt) >= activityCheckInterval {
+		session.LastVerifiedAt = now
+		_ = s.repo.UpdateSessionLastVerifiedAt(sessionID)
+	}
 
 	return session, nil
 }
@@ -88,8 +93,11 @@ func (s *SessionService) GetSession(sessionID string) (*models.Session, error) {
 	if err != nil {
 		return nil, err
 	}
+	if session == nil {
+		return nil, nil
+	}
 
-	if time.Since(session.CreatedAt) >= sessionExpiresIn {
+	if time.Since(session.LastVerifiedAt) >= inactivityTimeout {
 		_ = s.repo.DeleteSession(sessionID)
 		return nil, nil
 	}
