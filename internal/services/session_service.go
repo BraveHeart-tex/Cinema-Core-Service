@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+	"strings"
 	"time"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
@@ -15,6 +17,8 @@ type SessionService struct {
 func NewSessionService(repo *repositories.SessionRepository) *SessionService {
 	return &SessionService{repo: repo}
 }
+
+const sessionExpiresIn = 30 * 24 * time.Hour
 
 func (s *SessionService) CreateSession() (*models.SessionWithToken, error) {
 	now := time.Now()
@@ -47,4 +51,48 @@ func (s *SessionService) CreateSession() (*models.SessionWithToken, error) {
 		Session: *createdSession,
 		Token:   token,
 	}, nil
+}
+
+func (s *SessionService) ValidateSessionToken(token string) (*models.Session, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 2 {
+		return nil, errors.New("invalid token format")
+	}
+	sessionID, sessionSecret := parts[0], parts[1]
+
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check expiration
+	if time.Since(session.CreatedAt) >= sessionExpiresIn {
+		_ = s.repo.DeleteSession(sessionID)
+		return nil, nil
+	}
+
+	// Verify the secret
+	tokenSecretHash := utils.HashSecret(sessionSecret)
+	if !utils.ConstantTimeEqual(tokenSecretHash, session.SecretHash) {
+		return nil, nil
+	}
+
+	s.repo.UpdateSessionLastVerifiedAt(sessionID)
+
+	return session, nil
+}
+
+func (s *SessionService) GetSession(sessionID string) (*models.Session, error) {
+	session, err := s.repo.GetSession(sessionID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if time.Since(session.CreatedAt) >= sessionExpiresIn {
+		_ = s.repo.DeleteSession(sessionID)
+		return nil, nil
+	}
+
+	return session, nil
 }

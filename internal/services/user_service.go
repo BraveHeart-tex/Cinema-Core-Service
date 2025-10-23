@@ -1,21 +1,19 @@
 package services
 
 import (
-	"errors"
-
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	repo          *repositories.UserRepository
+	repo           *repositories.UserRepository
 	sessionService *SessionService
 }
 
 func NewUserService(repo *repositories.UserRepository, sessionService *SessionService) *UserService {
 	return &UserService{
-		repo:          repo,
+		repo:           repo,
 		sessionService: sessionService,
 	}
 }
@@ -35,12 +33,12 @@ type CreateUserResult struct {
 func (s *UserService) CreateUser(data CreateUserData) (*CreateUserResult, error) {
 	existing, _ := s.repo.GetByEmail(data.Email)
 	if existing != nil {
-		return nil, errors.New("user already exists with the given email")
+		return nil, NewConflict("user already exists with the given email")
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, NewInternalError("failed to hash password")
 	}
 
 	user := &models.User{
@@ -53,13 +51,13 @@ func (s *UserService) CreateUser(data CreateUserData) (*CreateUserResult, error)
 
 	createdUser, err := s.repo.Create(user)
 	if err != nil {
-		return nil, err
+		return nil, NewInternalError("failed to create user")
 	}
 
 	// Create session for the new user
 	session, err := s.sessionService.CreateSession()
 	if err != nil {
-		return nil, err
+		return nil, NewInternalError("failed to create session")
 	}
 
 	return &CreateUserResult{

@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 )
 
 func GenerateSecureRandomString() (string, error) {
@@ -25,4 +26,11 @@ func GenerateSecureRandomString() (string, error) {
 func HashSecret(secret string) []byte {
 	hash := sha256.Sum256([]byte(secret))
 	return hash[:]
+}
+
+func ConstantTimeEqual(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	return subtle.ConstantTimeCompare(a, b) == 1
 }

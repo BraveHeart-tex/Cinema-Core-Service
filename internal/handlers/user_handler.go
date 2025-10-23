@@ -36,7 +36,11 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if serviceErr, ok := err.(*services.ServiceError); ok {
+			ctx.JSON(serviceErr.Code, gin.H{"error": serviceErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "unexpected error"})
 		return
 	}
 
