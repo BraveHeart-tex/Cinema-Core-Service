@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +27,7 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 func (h *UserHandler) SignUp(ctx *gin.Context) {
 	var req SignUpRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		responses.Error(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -38,15 +39,15 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	})
 	if err != nil {
 		if serviceErr, ok := err.(*services.ServiceError); ok {
-			ctx.JSON(serviceErr.Code, gin.H{"error": serviceErr.Message})
+			responses.Error(ctx, serviceErr.Code, serviceErr.Message)
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "unexpected error"})
+		responses.Error(ctx, http.StatusInternalServerError, "unexpected error")
 		return
 	}
 
 	cookies.SetSessionCookie(ctx, result.Session.Token)
-	ctx.JSON(http.StatusCreated, gin.H{
+	responses.Success(ctx, gin.H{
 		"user": gin.H{
 			"id":    result.User.Id,
 			"name":  result.User.Name,
@@ -56,7 +57,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		"session": gin.H{
 			"token": result.Session.Token,
 		},
-	})
+	}, http.StatusCreated)
 }
 
 func (h *UserHandler) SignIn(ctx *gin.Context) {
