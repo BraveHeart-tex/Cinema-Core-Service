@@ -12,7 +12,7 @@ type App struct {
 func SetupRouter(appCtx *App) *gin.Engine {
 	r := gin.Default()
 	api := r.Group("/api")
-	RegisterUserRoutes(api, appCtx.UserHandler)
+	RegisterAuthRoutes(api, appCtx.UserHandler)
 
 	return r
 }

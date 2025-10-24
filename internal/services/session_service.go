@@ -1,3 +1,5 @@
+// Package services provides business logic for managing sessions,
+// including creation, validation, and lifecycle management.
 package services
 
 import (
@@ -23,7 +25,7 @@ var (
 	activityCheckInterval = 1 * time.Hour       // 1 hour
 )
 
-func (s *SessionService) CreateSession() (*models.SessionWithToken, error) {
+func (s *SessionService) CreateSession(userID uint) (*models.SessionWithToken, error) {
 	now := time.Now()
 	id, err := utils.GenerateSecureRandomString()
 	if err != nil {
@@ -43,6 +45,7 @@ func (s *SessionService) CreateSession() (*models.SessionWithToken, error) {
 		ID:         id,
 		SecretHash: secretHash,
 		CreatedAt:  now,
+		UserID:     userID,
 	}
 
 	createdSession, err := s.repo.CreateSession(session)

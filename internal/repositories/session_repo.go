@@ -1,3 +1,6 @@
+// Package repositories provides data access layers for various models.
+// SessionRepository handles CRUD operations and session lifecycle management
+// for the Session model.
 package repositories
 
 import (
@@ -22,18 +25,18 @@ func (r *SessionRepository) CreateSession(session *models.Session) (*models.Sess
 	return session, nil
 }
 
-func (r *SessionRepository) DeleteSession(sessionId string) error {
-	return r.db.Where("id = ?", sessionId).Delete(&models.Session{}).Error
+func (r *SessionRepository) DeleteSession(sessionID string) error {
+	return r.db.Where("id = ?", sessionID).Delete(&models.Session{}).Error
 }
 
-func (r *SessionRepository) GetSession(sessionId string) (*models.Session, error) {
+func (r *SessionRepository) GetSession(sessionID string) (*models.Session, error) {
 	var sesion models.Session
-	if err := r.db.Where("id = ?", sessionId).First(&sesion).Error; err != nil {
+	if err := r.db.Where("id = ?", sessionID).First(&sesion).Error; err != nil {
 		return nil, err
 	}
 	return &sesion, nil
 }
 
-func (r *SessionRepository) UpdateSessionLastVerifiedAt(sessionId string) error {
-	return r.db.Model(&models.Session{}).Where("id = ?", sessionId).Update("last_verified_at", time.Now()).Error
+func (r *SessionRepository) UpdateSessionLastVerifiedAt(sessionID string) error {
+	return r.db.Model(&models.Session{}).Where("id = ?", sessionID).Update("last_verified_at", time.Now()).Error
 }

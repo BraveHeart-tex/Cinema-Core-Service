@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -44,6 +45,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
+	cookies.SetSessionCookie(ctx, result.Session.Token)
 	ctx.JSON(http.StatusCreated, gin.H{
 		"user": gin.H{
 			"id":    result.User.Id,
@@ -57,4 +59,5 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	})
 }
 
-func Login(ctx *gin.Context) {}
+func (h *UserHandler) SignIn(ctx *gin.Context) {
+}

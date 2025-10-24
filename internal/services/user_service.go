@@ -55,7 +55,7 @@ func (s *UserService) CreateUser(data CreateUserData) (*CreateUserResult, error)
 	}
 
 	// Create session for the new user
-	session, err := s.sessionService.CreateSession()
+	session, err := s.sessionService.CreateSession(user.Id)
 	if err != nil {
 		return nil, NewInternalError("failed to create session")
 	}
