@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
@@ -27,6 +28,12 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 func (h *UserHandler) SignUp(ctx *gin.Context) {
 	var req SignUpRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		audit.LogEvent(ctx, audit.AuditEvent{
+			Event:    "user.signup",
+			Email:    req.Email,
+			Success:  false,
+			ErrorMsg: err.Error(),
+		})
 		responses.Error(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -38,14 +45,30 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
+		var errMsg string
 		if serviceErr, ok := err.(*services.ServiceError); ok {
+			errMsg = serviceErr.Message
 			responses.Error(ctx, serviceErr.Code, serviceErr.Message)
-			return
+		} else {
+			errMsg = "unexpected error"
+			responses.Error(ctx, http.StatusInternalServerError, errMsg)
 		}
-		responses.Error(ctx, http.StatusInternalServerError, "unexpected error")
+
+		audit.LogEvent(ctx, audit.AuditEvent{
+			Event:    "user.signup",
+			Email:    req.Email,
+			Success:  false,
+			ErrorMsg: errMsg,
+		})
 		return
 	}
 
+	audit.LogEvent(ctx, audit.AuditEvent{
+		Event:   "user.signup",
+		UserID:  result.User.Id,
+		Email:   result.User.Email,
+		Success: true,
+	})
 	cookies.SetSessionCookie(ctx, result.Session.Token)
 	responses.Success(ctx, gin.H{
 		"user": gin.H{
