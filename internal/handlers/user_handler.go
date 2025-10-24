@@ -83,5 +83,21 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	}, http.StatusCreated)
 }
 
+type SignInRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
 func (h *UserHandler) SignIn(ctx *gin.Context) {
+	var req SignInRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		audit.LogEvent(ctx, audit.AuditEvent{
+			Event:    "user.signin",
+			Email:    req.Email,
+			Success:  false,
+			ErrorMsg: err.Error(),
+		})
+		responses.Error(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 }
