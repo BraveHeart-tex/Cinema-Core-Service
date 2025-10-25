@@ -29,7 +29,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	var req SignUpRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		audit.LogEvent(ctx, audit.AuditEvent{
-			Event:    "user.signup",
+			Event:    "auth.signup.failure",
 			Email:    req.Email,
 			Success:  false,
 			ErrorMsg: err.Error(),
@@ -55,7 +55,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		}
 
 		audit.LogEvent(ctx, audit.AuditEvent{
-			Event:    "user.signup",
+			Event:    "auth.signup.failure",
 			Email:    req.Email,
 			Success:  false,
 			ErrorMsg: errMsg,
@@ -64,23 +64,13 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	}
 
 	audit.LogEvent(ctx, audit.AuditEvent{
-		Event:   "user.signup",
+		Event:   "auth.signup.success",
 		UserID:  result.User.Id,
 		Email:   result.User.Email,
 		Success: true,
 	})
 	cookies.SetSessionCookie(ctx, result.Session.Token)
-	responses.Success(ctx, gin.H{
-		"user": gin.H{
-			"id":    result.User.Id,
-			"name":  result.User.Name,
-			"email": result.User.Email,
-			"role":  result.User.Role,
-		},
-		"session": gin.H{
-			"token": result.Session.Token,
-		},
-	}, http.StatusCreated)
+	responses.Success(ctx, buildAuthResponse(result), http.StatusCreated)
 }
 
 type SignInRequest struct {
@@ -92,7 +82,7 @@ func (h *UserHandler) SignIn(ctx *gin.Context) {
 	var req SignInRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		audit.LogEvent(ctx, audit.AuditEvent{
-			Event:    "user.signin",
+			Event:    "auth.signin.failure",
 			Email:    req.Email,
 			Success:  false,
 			ErrorMsg: err.Error(),
@@ -100,4 +90,36 @@ func (h *UserHandler) SignIn(ctx *gin.Context) {
 		responses.Error(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	result, err := h.service.SignIn(services.SignInData{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		var errMsg string
+		if serviceErr, ok := err.(*services.ServiceError); ok {
+			errMsg = serviceErr.Message
+			responses.Error(ctx, serviceErr.Code, serviceErr.Message)
+		} else {
+			errMsg = "unexpected error"
+			responses.Error(ctx, http.StatusInternalServerError, errMsg)
+		}
+
+		audit.LogEvent(ctx, audit.AuditEvent{
+			Event:    "auth.signin.failure",
+			Email:    req.Email,
+			Success:  false,
+			ErrorMsg: errMsg,
+		})
+		return
+	}
+
+	audit.LogEvent(ctx, audit.AuditEvent{
+		Event:   "auth.signin.success",
+		UserID:  result.User.Id,
+		Email:   result.User.Email,
+		Success: true,
+	})
+	cookies.SetSessionCookie(ctx, result.Session.Token)
+	responses.Success(ctx, buildAuthResponse(result), http.StatusOK)
 }

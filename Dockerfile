@@ -2,7 +2,11 @@ FROM golang:1.25-alpine
 
 RUN apk add --no-cache git bash curl
 
-RUN go install github.com/air-verse/air@latest
+# Install Air (for hot reload)
+RUN go install github.com/cosmtrek/air@latest
+
+# Install Delve (for debugging)
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /app
 
@@ -11,6 +15,6 @@ RUN go mod download
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 8080 40000
 
 CMD ["air"]

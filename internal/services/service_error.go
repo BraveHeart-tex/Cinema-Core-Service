@@ -22,3 +22,11 @@ func NewConflict(msg string) *ServiceError {
 func NewInternalError(msg string) *ServiceError {
 	return &ServiceError{Code: http.StatusInternalServerError, Message: msg}
 }
+
+func NewUnauthorized(msg string) *ServiceError {
+	return &ServiceError{Code: http.StatusUnauthorized, Message: msg}
+}
+
+func NewNotFound(msg string) *ServiceError {
+	return &ServiceError{Code: http.StatusNotFound, Message: msg}
+}

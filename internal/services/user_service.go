@@ -1,9 +1,12 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -25,13 +28,13 @@ type CreateUserData struct {
 	Password string
 }
 
-type CreateUserResult struct {
+type UserWithSession struct {
 	User    *models.User
 	Session *models.SessionWithToken
 }
 
-func (s *UserService) CreateUser(data CreateUserData) (*CreateUserResult, error) {
-	existing, _ := s.repo.GetByEmail(data.Email)
+func (s *UserService) CreateUser(data CreateUserData) (*UserWithSession, error) {
+	existing, _ := s.repo.FindByEmail(data.Email)
 	if existing != nil {
 		return nil, NewConflict("user already exists with the given email")
 	}
@@ -60,8 +63,37 @@ func (s *UserService) CreateUser(data CreateUserData) (*CreateUserResult, error)
 		return nil, NewInternalError("failed to create session")
 	}
 
-	return &CreateUserResult{
+	return &UserWithSession{
 		User:    createdUser,
+		Session: session,
+	}, nil
+}
+
+type SignInData struct {
+	Email    string
+	Password string
+}
+
+func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
+	user, err := s.repo.FindByEmail(data.Email)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, NewUnauthorized("invalid email or password")
+	}
+	if err != nil {
+		return nil, NewInternalError("failed to fetch user")
+	}
+
+	if bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(data.Password)) != nil {
+		return nil, NewUnauthorized("invalid email or password")
+	}
+
+	session, err := s.sessionService.CreateSession(user.Id)
+	if err != nil {
+		return nil, NewInternalError("failed to create session")
+	}
+
+	return &UserWithSession{
+		User:    user,
 		Session: session,
 	}, nil
 }
