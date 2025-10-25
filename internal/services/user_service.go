@@ -1,12 +1,9 @@
 package services
 
 import (
-	"errors"
-
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -76,11 +73,13 @@ type SignInData struct {
 
 func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
 	user, err := s.repo.FindByEmail(data.Email)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, NewUnauthorized("invalid email or password")
-	}
 	if err != nil {
 		return nil, NewInternalError("failed to fetch user")
+	}
+
+	// TODO: Add better nil / not found checks here
+	if user == nil {
+		return nil, NewUnauthorized("invalid email or password")
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(data.Password)) != nil {
