@@ -14,6 +14,23 @@ services:
       REDIS_ADDR: redis:6379
     command: air
 
+  app-debug:
+    build: .
+    volumes:
+      - .:/app
+      - /app/tmp
+    ports:
+      - "8080:8080"
+      - "40000:40000" # expose delve port
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgres://cinema:cinema@db:5432/cinema?sslmode=disable
+      REDIS_ADDR: redis:6379
+    command: >
+      dlv debug ./cmd/server --headless --listen=:40000 --api-version=2 --accept-multiclient --continue
+
   db:
     image: postgres:15
     environment:

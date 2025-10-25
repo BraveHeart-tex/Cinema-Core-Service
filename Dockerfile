@@ -2,10 +2,8 @@ FROM golang:1.25-alpine
 
 RUN apk add --no-cache git bash curl
 
-# Install Air (for hot reload)
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest
 
-# Install Delve (for debugging)
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /app
