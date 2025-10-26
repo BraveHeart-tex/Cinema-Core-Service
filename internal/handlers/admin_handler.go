@@ -25,14 +25,13 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 	userIDStr := ctx.Param("userID")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 	if err != nil {
-		audit.LogEvent(ctx, audit.AuditEvent{
-			Event:    "admin.promote_user.failure",
-			Success:  false,
-			ErrorMsg: "invalid user id",
-			Metadata: map[string]any{
-				"performedByID":    performedByID,
-				"performedByEmail": performedByEmail,
-			},
+		audit.LogAdminAction(ctx, audit.AdminAuditParams{
+			Success:          false,
+			Action:           "promote_user",
+			ErrorMsg:         "invalid user id",
+			TargetUserID:     0,
+			PerformedByID:    performedByID,
+			PerformedByEmail: performedByEmail,
 		})
 		responses.Error(ctx, http.StatusBadRequest, "invalid user id")
 		return
