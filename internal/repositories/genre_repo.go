@@ -35,3 +35,15 @@ func (r *GenreRepository) FindMany(genreIDs []uint) ([]models.Genre, error) {
 	}
 	return genres, nil
 }
+
+func (r *GenreRepository) FindById(genreID uint) (*models.Genre, error) {
+	var genre models.Genre
+	if err := r.db.First(&genre, genreID).Error; err != nil {
+		return nil, err
+	}
+	return &genre, nil
+}
+
+func (r *GenreRepository) Delete(genreID uint) error {
+	return r.db.Delete(&models.Genre{}, genreID).Error
+}

@@ -2,6 +2,7 @@ package admin
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
@@ -60,6 +61,49 @@ func (h *AdminHandler) UpdateGenre(ctx *gin.Context) {
 
 // DeleteGenre deletes a genre by ID.
 func (h *AdminHandler) DeleteGenre(ctx *gin.Context) {
-	// TODO: Implement when DeleteGenre service method is ready
-	responses.Error(ctx, http.StatusNotImplemented, "not implemented")
+	genreIDStr := ctx.Param("genreID")
+	genreID, err := strconv.ParseUint(genreIDStr, 10, 64)
+	if err != nil {
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:      false,
+			Action:       "delete_genre",
+			ErrorMsg:     "invalid genre id",
+			TargetUserID: 0,
+		})
+		responses.Error(ctx, http.StatusBadRequest, "invalid genre id")
+		return
+	}
+
+	err = h.Services.Genres.DeleteGenre(uint(genreID))
+	if err != nil {
+		if se, ok := err.(*apperrors.ServiceError); ok {
+			h.logAdminAction(ctx, audit.AdminAuditParams{
+				Success:      false,
+				Action:       "delete_genre",
+				ErrorMsg:     se.Message,
+				TargetUserID: uint(genreID),
+			})
+			responses.Error(ctx, se.Code, se.Message)
+			return
+		}
+
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:      false,
+			Action:       "delete_genre",
+			ErrorMsg:     err.Error(),
+			TargetUserID: uint(genreID),
+		})
+		responses.Error(ctx, http.StatusInternalServerError, "Failed to delete genre")
+		return
+	}
+
+	h.logAdminAction(ctx, audit.AdminAuditParams{
+		Success:      true,
+		Action:       "delete_genre",
+		TargetUserID: uint(genreID),
+	})
+
+	responses.Success(ctx, gin.H{
+		"message": "genre deleted successfully",
+	}, http.StatusOK)
 }

@@ -48,6 +48,15 @@ func (s *Service) UpdateGenre(genreID uint, newName string) (*models.Genre, erro
 
 // DeleteGenre deletes a genre by ID.
 func (s *Service) DeleteGenre(genreID uint) error {
-	// TODO: Implement delete logic
-	return apperrors.NewInternalError("not implemented")
+	genre, err := s.genreRepo.FindById(genreID)
+
+	if genre == nil {
+		return apperrors.NewNotFound("genre not found")
+	}
+
+	if err != nil {
+		return apperrors.NewInternalError("failed to delete genre")
+	}
+
+	return s.genreRepo.Delete(genre.ID)
 }
