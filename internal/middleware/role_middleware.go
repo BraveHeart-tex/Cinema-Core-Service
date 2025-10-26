@@ -12,16 +12,16 @@ func RoleMiddleware(requiredRole string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		val, exists := ctx.Get(SessionContextKey)
 		if !exists || val == nil {
-			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+			responses.Error(ctx, http.StatusUnauthorized, "auhentication required")
 			ctx.Abort()
 			return
 		}
 
-		ctxData := val.(map[string]interface{})
+		ctxData := val.(map[string]any)
 		user := ctxData["user"].(*models.User)
 
 		if user.Role != requiredRole {
-			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+			responses.Error(ctx, http.StatusForbidden, "insufficient permissions")
 			ctx.Abort()
 			return
 		}
