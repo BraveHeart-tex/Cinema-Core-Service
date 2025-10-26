@@ -23,4 +23,9 @@ func RegisterAdminRoutes(router *gin.RouterGroup, adminHandler *handlers.AdminHa
 	{
 		users.PUT("/:userID/promote", adminHandler.PromoteUser)
 	}
+
+	movies := admin.Group("/movies")
+	{
+		movies.POST("/", middleware.RoleMiddleware("admin"), adminHandler.CreateMovie)
+	}
 }

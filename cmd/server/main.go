@@ -32,11 +32,13 @@ func main() {
 	// ================= Repositories =================
 	userRepo := repositories.NewUserRepository(database)
 	sessionRepo := repositories.NewSessionRepository(database)
+	genreRepo := repositories.NewGenreRepository(database)
+	movieRepo := repositories.NewMovieRepository(database)
 
 	// ================= Services =================
 	sessionService := services.NewSessionService(sessionRepo)
 	userService := services.NewUserService(userRepo, sessionService)
-	adminService := services.NewAdminService(userRepo)
+	adminService := services.NewAdminService(userRepo, genreRepo, movieRepo)
 
 	// ================= Handlers =================
 	userHandler := handlers.NewUserHandler(userService)
