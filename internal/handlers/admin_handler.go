@@ -6,8 +6,6 @@ import (
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/movies"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/middleware"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	"github.com/gin-gonic/gin"
@@ -22,14 +20,7 @@ func NewAdminHandler(service *services.AdminService) *AdminHandler {
 }
 
 func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
-	ctxData, exists := ctx.Get(middleware.SessionContextKey)
-	var performedByID uint
-	var performedByEmail string
-	if exists && ctxData != nil {
-		user := ctxData.(map[string]any)["user"].(*models.User)
-		performedByID = user.Id
-		performedByEmail = user.Email
-	}
+	performedByID, performedByEmail := getCurrentAdmin(ctx)
 
 	userIDStr := ctx.Param("userID")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
@@ -93,14 +84,7 @@ func (h *AdminHandler) CreateMovie(ctx *gin.Context) {
 		return
 	}
 
-	ctxData, exists := ctx.Get(middleware.SessionContextKey)
-	var performedByID uint
-	var performedByEmail string
-	if exists && ctxData != nil {
-		user := ctxData.(map[string]any)["user"].(*models.User)
-		performedByID = user.Id
-		performedByEmail = user.Email
-	}
+	performedByID, performedByEmail := getCurrentAdmin(ctx)
 
 	movie, err := h.service.CreateMovie(req)
 	if err != nil {
