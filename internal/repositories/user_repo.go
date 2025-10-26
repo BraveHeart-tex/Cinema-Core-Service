@@ -1,6 +1,9 @@
 package repositories
 
 import (
+	"errors"
+
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"gorm.io/gorm"
 )
@@ -16,9 +19,11 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+	err := r.db.Where("email = ?", email).First(&user).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainerrors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -28,6 +33,9 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 
 func (r *UserRepository) Create(user *models.User) (*models.User, error) {
 	if err := r.db.Create(user).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, domainerrors.ErrConflict
+		}
 		return nil, err
 	}
 	return user, nil

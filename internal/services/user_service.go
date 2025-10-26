@@ -1,6 +1,9 @@
 package services
 
 import (
+	"errors"
+
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"golang.org/x/crypto/bcrypt"
@@ -31,7 +34,11 @@ type UserWithSession struct {
 }
 
 func (s *UserService) CreateUser(data CreateUserData) (*UserWithSession, error) {
-	existing, _ := s.repo.FindByEmail(data.Email)
+	existing, err := s.repo.FindByEmail(data.Email)
+	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
+		return nil, NewInternalError("failed to check existing user")
+	}
+
 	if existing != nil {
 		return nil, NewConflict("user already exists with the given email")
 	}
@@ -51,10 +58,12 @@ func (s *UserService) CreateUser(data CreateUserData) (*UserWithSession, error) 
 
 	createdUser, err := s.repo.Create(user)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrConflict) {
+			return nil, NewConflict("user already exists with the given email")
+		}
 		return nil, NewInternalError("failed to create user")
 	}
 
-	// Create session for the new user
 	session, err := s.sessionService.CreateSession(user.Id)
 	if err != nil {
 		return nil, NewInternalError("failed to create session")
@@ -74,10 +83,12 @@ type SignInData struct {
 func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
 	user, err := s.repo.FindByEmail(data.Email)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, NewUnauthorized("invalid email or password")
+		}
 		return nil, NewInternalError("failed to fetch user")
 	}
 
-	// TODO: Add better nil / not found checks here
 	if user == nil {
 		return nil, NewUnauthorized("invalid email or password")
 	}
