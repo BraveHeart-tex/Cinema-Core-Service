@@ -37,7 +37,7 @@ func main() {
 	// ================= Services =================
 	sessionService := services.NewSessionService(sessionRepo)
 	userService := services.NewUserService(userRepo, sessionService)
-	adminService := services.NewAdminService(adminRepo)
+	adminService := services.NewAdminService(adminRepo, userRepo)
 
 	// ================= Handlers =================
 	userHandler := handlers.NewUserHandler(userService)

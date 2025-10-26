@@ -48,28 +48,37 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 
 	err = h.service.PromoteToAdmin(uint(userID))
 	if err != nil {
-		audit.LogEvent(ctx, audit.AuditEvent{
-			Event:    "admin.promote_user.failure",
-			UserID:   uint(userID),
-			Success:  false,
-			ErrorMsg: err.Error(),
-			Metadata: map[string]any{
-				"performedByID":    performedByID,
-				"performedByEmail": performedByEmail,
-			},
+		if se, ok := err.(*services.ServiceError); ok {
+			audit.LogAdminAction(ctx, audit.AdminAuditParams{
+				Success:          false,
+				Action:           "promote_user",
+				ErrorMsg:         se.Message,
+				TargetUserID:     uint(userID),
+				PerformedByID:    performedByID,
+				PerformedByEmail: performedByEmail,
+			})
+			responses.Error(ctx, se.Code, se.Message)
+			return
+		}
+
+		audit.LogAdminAction(ctx, audit.AdminAuditParams{
+			Success:          false,
+			Action:           "promote_user",
+			ErrorMsg:         err.Error(),
+			TargetUserID:     uint(userID),
+			PerformedByID:    performedByID,
+			PerformedByEmail: performedByEmail,
 		})
 		responses.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	audit.LogEvent(ctx, audit.AuditEvent{
-		Event:   "admin.promote_user.success",
-		UserID:  uint(userID),
-		Success: true,
-		Metadata: map[string]any{
-			"performedByID":    performedByID,
-			"performedByEmail": performedByEmail,
-		},
+	audit.LogAdminAction(ctx, audit.AdminAuditParams{
+		Success:          true,
+		Action:           "promote_user",
+		TargetUserID:     uint(userID),
+		PerformedByID:    performedByID,
+		PerformedByEmail: performedByEmail,
 	})
 	responses.Success(ctx, gin.H{
 		"message": "user promoted to admin",
