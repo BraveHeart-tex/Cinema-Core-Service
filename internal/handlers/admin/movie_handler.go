@@ -19,37 +19,29 @@ func (h *AdminHandler) CreateMovie(ctx *gin.Context) {
 		return
 	}
 
-	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
-
 	movie, err := h.Services.Movies.CreateMovie(req)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
-			audit.LogAdminAction(ctx, audit.AdminAuditParams{
-				Action:           "create_movie",
-				Success:          false,
-				PerformedByID:    performedByID,
-				PerformedByEmail: performedByEmail,
-				ErrorMsg:         se.Message,
+			h.logAdminAction(ctx, audit.AdminAuditParams{
+				Action:   "create_movie",
+				Success:  false,
+				ErrorMsg: se.Message,
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
 		}
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Action:           "create_movie",
-			Success:          false,
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
-			ErrorMsg:         err.Error(),
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Action:   "create_movie",
+			Success:  false,
+			ErrorMsg: err.Error(),
 		})
 		responses.Error(ctx, http.StatusInternalServerError, "Failed to create movie")
 		return
 	}
 
-	audit.LogAdminAction(ctx, audit.AdminAuditParams{
-		Action:           "create_movie",
-		Success:          true,
-		PerformedByID:    performedByID,
-		PerformedByEmail: performedByEmail,
+	h.logAdminAction(ctx, audit.AdminAuditParams{
+		Action:  "create_movie",
+		Success: true,
 	})
 
 	responses.Success(ctx, gin.H{

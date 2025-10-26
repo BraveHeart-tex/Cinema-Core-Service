@@ -21,38 +21,30 @@ func (h *AdminHandler) CreateGenre(ctx *gin.Context) {
 		return
 	}
 
-	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
-
 	genre, err := h.Services.Genres.CreateGenre(req.Name)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
-			audit.LogAdminAction(ctx, audit.AdminAuditParams{
-				Action:           "create_genre",
-				Success:          false,
-				PerformedByID:    performedByID,
-				PerformedByEmail: performedByEmail,
-				ErrorMsg:         se.Message,
+			h.logAdminAction(ctx, audit.AdminAuditParams{
+				Action:   "create_genre",
+				Success:  false,
+				ErrorMsg: se.Message,
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
 		}
 
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Action:           "create_genre",
-			Success:          false,
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
-			ErrorMsg:         err.Error(),
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Action:   "create_genre",
+			Success:  false,
+			ErrorMsg: err.Error(),
 		})
 		responses.Error(ctx, http.StatusInternalServerError, "Failed to create genre")
 		return
 	}
 
-	audit.LogAdminAction(ctx, audit.AdminAuditParams{
-		Action:           "create_genre",
-		Success:          true,
-		PerformedByID:    performedByID,
-		PerformedByEmail: performedByEmail,
+	h.logAdminAction(ctx, audit.AdminAuditParams{
+		Action:  "create_genre",
+		Success: true,
 	})
 
 	responses.Success(ctx, gin.H{

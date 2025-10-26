@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/middleware"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	adminServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/admin"
@@ -31,3 +32,14 @@ func (h *AdminHandler) getCurrentAdmin(ctx *gin.Context) (uint, string) {
 	}
 	return 0, ""
 }
+
+// logAdminAction wraps audit.LogAdminAction and automatically fills PerformedByID and PerformedByEmail
+// from the current admin context. This reduces duplication across all domain handlers.
+// All admin actions should use this method instead of calling audit.LogAdminAction directly.
+func (h *AdminHandler) logAdminAction(ctx *gin.Context, params audit.AdminAuditParams) {
+	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
+	params.PerformedByID = performedByID
+	params.PerformedByEmail = performedByEmail
+	audit.LogAdminAction(ctx, params)
+}
+

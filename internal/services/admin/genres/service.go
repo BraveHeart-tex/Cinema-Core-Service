@@ -26,7 +26,6 @@ func NewService(genreRepo *repositories.GenreRepository) *Service {
 // Returns ServiceError if creation fails.
 func (s *Service) CreateGenre(name string) (*models.Genre, error) {
 	genre := &models.Genre{Name: name}
-	
 	result, err := s.genreRepo.CreateGenre(genre)
 	if err != nil {
 		return nil, apperrors.NewInternalError("failed to create genre")

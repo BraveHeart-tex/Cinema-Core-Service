@@ -13,18 +13,14 @@ import (
 // PromoteUser promotes a regular user to admin role.
 // This handler uses h.Services.Users service for the business logic.
 func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
-	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
-
 	userIDStr := ctx.Param("userID")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 	if err != nil {
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Success:          false,
-			Action:           "promote_user",
-			ErrorMsg:         "invalid user id",
-			TargetUserID:     0,
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:      false,
+			Action:       "promote_user",
+			ErrorMsg:     "invalid user id",
+			TargetUserID: 0,
 		})
 		responses.Error(ctx, http.StatusBadRequest, "invalid user id")
 		return
@@ -33,36 +29,30 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 	err = h.Services.Users.PromoteToAdmin(uint(userID))
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
-			audit.LogAdminAction(ctx, audit.AdminAuditParams{
-				Success:          false,
-				Action:           "promote_user",
-				ErrorMsg:         se.Message,
-				TargetUserID:     uint(userID),
-				PerformedByID:    performedByID,
-				PerformedByEmail: performedByEmail,
+			h.logAdminAction(ctx, audit.AdminAuditParams{
+				Success:      false,
+				Action:       "promote_user",
+				ErrorMsg:     se.Message,
+				TargetUserID: uint(userID),
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
 		}
 
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Success:          false,
-			Action:           "promote_user",
-			ErrorMsg:         err.Error(),
-			TargetUserID:     uint(userID),
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:      false,
+			Action:       "promote_user",
+			ErrorMsg:     err.Error(),
+			TargetUserID: uint(userID),
 		})
 		responses.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	audit.LogAdminAction(ctx, audit.AdminAuditParams{
-		Success:          true,
-		Action:           "promote_user",
-		TargetUserID:     uint(userID),
-		PerformedByID:    performedByID,
-		PerformedByEmail: performedByEmail,
+	h.logAdminAction(ctx, audit.AdminAuditParams{
+		Success:      true,
+		Action:       "promote_user",
+		TargetUserID: uint(userID),
 	})
 	responses.Success(ctx, gin.H{
 		"message": "user promoted to admin",
@@ -71,18 +61,14 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 
 // DemoteUser demotes an admin user to regular user role.
 func (h *AdminHandler) DemoteUser(ctx *gin.Context) {
-	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
-
 	userIDStr := ctx.Param("userID")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 	if err != nil {
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Success:          false,
-			Action:           "demote_user",
-			ErrorMsg:         "invalid user id",
-			TargetUserID:     0,
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:      false,
+			Action:       "demote_user",
+			ErrorMsg:     "invalid user id",
+			TargetUserID: 0,
 		})
 		responses.Error(ctx, http.StatusBadRequest, "invalid user id")
 		return
@@ -91,36 +77,30 @@ func (h *AdminHandler) DemoteUser(ctx *gin.Context) {
 	err = h.Services.Users.DemoteFromAdmin(uint(userID))
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
-			audit.LogAdminAction(ctx, audit.AdminAuditParams{
-				Success:          false,
-				Action:           "demote_user",
-				ErrorMsg:         se.Message,
-				TargetUserID:     uint(userID),
-				PerformedByID:    performedByID,
-				PerformedByEmail: performedByEmail,
+			h.logAdminAction(ctx, audit.AdminAuditParams{
+				Success:      false,
+				Action:       "demote_user",
+				ErrorMsg:     se.Message,
+				TargetUserID: uint(userID),
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
 		}
 
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Success:          false,
-			Action:           "demote_user",
-			ErrorMsg:         err.Error(),
-			TargetUserID:     uint(userID),
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:      false,
+			Action:       "demote_user",
+			ErrorMsg:     err.Error(),
+			TargetUserID: uint(userID),
 		})
 		responses.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	audit.LogAdminAction(ctx, audit.AdminAuditParams{
-		Success:          true,
-		Action:           "demote_user",
-		TargetUserID:     uint(userID),
-		PerformedByID:    performedByID,
-		PerformedByEmail: performedByEmail,
+	h.logAdminAction(ctx, audit.AdminAuditParams{
+		Success:      true,
+		Action:       "demote_user",
+		TargetUserID: uint(userID),
 	})
 	responses.Success(ctx, gin.H{
 		"message": "user demoted to regular user",
