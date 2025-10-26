@@ -5,6 +5,7 @@ import (
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/genre"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/gin-gonic/gin"
 )
@@ -12,9 +13,7 @@ import (
 // CreateGenre creates a new genre.
 // This handler uses h.Services.Genres service for the business logic.
 func (h *AdminHandler) CreateGenre(ctx *gin.Context) {
-	var req struct {
-		Name string `json:"name" binding:"required,min=1,max=100"`
-	}
+	var req genre.CreateGenreRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		responses.Error(ctx, http.StatusBadRequest, "invalid input: "+err.Error())

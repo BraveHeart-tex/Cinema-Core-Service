@@ -42,4 +42,3 @@ func (h *AdminHandler) logAdminAction(ctx *gin.Context, params audit.AdminAuditP
 	params.PerformedByEmail = performedByEmail
 	audit.LogAdminAction(ctx, params)
 }
-
