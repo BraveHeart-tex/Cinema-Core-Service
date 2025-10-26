@@ -37,7 +37,8 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 
 	appCtx := &app.App{
-		UserHandler: userHandler,
+		UserHandler:    userHandler,
+		SessionService: sessionService,
 	}
 
 	router := app.SetupRouter(appCtx)
