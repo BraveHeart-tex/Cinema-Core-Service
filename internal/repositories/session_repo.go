@@ -1,6 +1,3 @@
-// Package repositories provides data access layers for various models.
-// SessionRepository handles CRUD operations and session lifecycle management
-// for the Session model.
 package repositories
 
 import (

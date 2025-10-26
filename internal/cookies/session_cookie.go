@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	sessionCookieName = "session"
+	SessionCookieName = "session"
 	sessionCookieTTL  = 24 * time.Hour
 )
 
 func SetSessionCookie(ctx *gin.Context, token string) {
 	ctx.SetCookie(
-		sessionCookieName,
+		SessionCookieName,
 		token,
 		int(sessionCookieTTL.Seconds()),
 		"/",
