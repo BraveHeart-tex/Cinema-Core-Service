@@ -4,16 +4,16 @@ import (
 	"errors"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 )
 
 type AdminService struct {
-	repo     *repositories.AdminRepository
 	userRepo *repositories.UserRepository
 }
 
-func NewAdminService(repo *repositories.AdminRepository, userRepo *repositories.UserRepository) *AdminService {
-	return &AdminService{repo: repo, userRepo: userRepo}
+func NewAdminService(userRepo *repositories.UserRepository) *AdminService {
+	return &AdminService{userRepo: userRepo}
 }
 
 func (s *AdminService) PromoteToAdmin(userID uint) error {
@@ -28,9 +28,9 @@ func (s *AdminService) PromoteToAdmin(userID uint) error {
 		return NewNotFound("target user not found")
 	}
 
-	if user.Role == "admin" {
+	if user.Role == models.AdminRole {
 		return NewConflict("target user is already an admin")
 	}
 
-	return s.repo.PromoteToAdmin(user.Id)
+	return s.userRepo.UpdateRole(user.Id, models.AdminRole)
 }

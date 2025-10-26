@@ -52,3 +52,7 @@ func (r *UserRepository) FindById(userID uint) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) UpdateRole(userID uint, newRole string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("role", newRole).Error
+}
