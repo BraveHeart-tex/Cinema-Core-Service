@@ -1,26 +1,29 @@
-package handlers
+package admin
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/movies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
-type AdminHandler struct {
+type AdminUserHandler struct {
 	service *services.AdminService
+	*AdminBaseHandler
 }
 
-func NewAdminHandler(service *services.AdminService) *AdminHandler {
-	return &AdminHandler{service: service}
+func NewAdminUserHandler(service *services.AdminService) *AdminUserHandler {
+	return &AdminUserHandler{
+		service:          service,
+		AdminBaseHandler: &AdminBaseHandler{},
+	}
 }
 
-func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
-	performedByID, performedByEmail := getCurrentAdmin(ctx)
+func (h *AdminUserHandler) PromoteUser(ctx *gin.Context) {
+	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
 
 	userIDStr := ctx.Param("userID")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
@@ -74,50 +77,4 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 	responses.Success(ctx, gin.H{
 		"message": "user promoted to admin",
 	})
-}
-
-func (h *AdminHandler) CreateMovie(ctx *gin.Context) {
-	var req movies.CreateMovieRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		responses.Error(ctx, http.StatusBadRequest, "invalid input: "+err.Error())
-		return
-	}
-
-	performedByID, performedByEmail := getCurrentAdmin(ctx)
-
-	movie, err := h.service.CreateMovie(req)
-	if err != nil {
-		if se, ok := err.(*services.ServiceError); ok {
-			audit.LogAdminAction(ctx, audit.AdminAuditParams{
-				Action:           "create_movie",
-				Success:          false,
-				PerformedByID:    performedByID,
-				PerformedByEmail: performedByEmail,
-				ErrorMsg:         se.Message,
-			})
-			responses.Error(ctx, se.Code, se.Message)
-			return
-		}
-		audit.LogAdminAction(ctx, audit.AdminAuditParams{
-			Action:           "create_movie",
-			Success:          false,
-			PerformedByID:    performedByID,
-			PerformedByEmail: performedByEmail,
-			ErrorMsg:         err.Error(),
-		})
-		responses.Error(ctx, http.StatusInternalServerError, "Failed to create movie")
-		return
-	}
-
-	audit.LogAdminAction(ctx, audit.AdminAuditParams{
-		Action:           "create_movie",
-		Success:          true,
-		PerformedByID:    performedByID,
-		PerformedByEmail: performedByEmail,
-	})
-
-	responses.Success(ctx, gin.H{
-		"message": "movie created successfully",
-		"movie":   movies.BuildMovieResponse(movie),
-	}, http.StatusCreated)
 }

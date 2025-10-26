@@ -8,6 +8,7 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/config"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers/admin"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/logger"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
@@ -42,13 +43,17 @@ func main() {
 
 	// ================= Handlers =================
 	userHandler := handlers.NewUserHandler(userService)
-	adminHandler := handlers.NewAdminHandler(adminService)
+	adminUserHandler := admin.NewAdminUserHandler(adminService)
+	adminMovieHandler := admin.NewAdminMovieHandler(adminService)
+	adminGenreHandler := admin.NewAdminGenreHandler(adminService)
 
 	appCtx := &app.App{
-		AdminHandler:   adminHandler,
-		UserHandler:    userHandler,
-		SessionService: sessionService,
-		UserService:    userService,
+		UserHandler:       userHandler,
+		AdminUserHandler:  adminUserHandler,
+		AdminMovieHandler: adminMovieHandler,
+		AdminGenreHandler: adminGenreHandler,
+		SessionService:    sessionService,
+		UserService:       userService,
 	}
 
 	router := app.SetupRouter(appCtx)
