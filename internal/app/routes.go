@@ -17,39 +17,13 @@ func RegisterAuthRoutes(router *gin.RouterGroup, userHandler *handlers.UserHandl
 }
 
 func RegisterAdminRoutes(router *gin.RouterGroup,
-	userHandler *admin.AdminUserHandler,
-	movieHandler *admin.AdminMovieHandler,
-	genreHandler *admin.AdminGenreHandler,
+	adminHandler *admin.AdminHandler,
 	sessionService *services.SessionService,
 	userService *services.UserService,
 ) {
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middleware.SessionAuthMiddleware(sessionService, userService), middleware.RoleMiddleware("admin"))
 
-	RegisterUserAdminRoutes(adminGroup, userHandler)
-	RegisterMovieAdminRoutes(adminGroup, movieHandler)
-	RegisterGenreAdminRoutes(adminGroup, genreHandler)
-}
-
-func RegisterUserAdminRoutes(router *gin.RouterGroup, handler *admin.AdminUserHandler) {
-	users := router.Group("/users")
-	{
-		users.PUT("/:userID/promote", handler.PromoteUser)
-	}
-}
-
-func RegisterMovieAdminRoutes(router *gin.RouterGroup, handler *admin.AdminMovieHandler) {
-	movies := router.Group("/movies")
-	{
-		movies.POST("/", handler.CreateMovie)
-	}
-}
-
-func RegisterGenreAdminRoutes(router *gin.RouterGroup, handler *admin.AdminGenreHandler) {
-	genres := router.Group("/genres")
-	{
-		genres.POST("/", handler.CreateGenre)
-		genres.PUT("/:genreID", handler.UpdateGenre)
-		genres.DELETE("/:genreID", handler.DeleteGenre)
-	}
+	// All routes are grouped by domain (users, movies, genres, tickets)
+	admin.RegisterAdminRoutes(adminGroup, adminHandler)
 }

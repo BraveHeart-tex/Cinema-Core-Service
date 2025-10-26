@@ -9,12 +9,10 @@ import (
 )
 
 type App struct {
-	UserHandler       *handlers.UserHandler
-	AdminUserHandler  *admin.AdminUserHandler
-	AdminMovieHandler *admin.AdminMovieHandler
-	AdminGenreHandler *admin.AdminGenreHandler
-	SessionService    *services.SessionService
-	UserService       *services.UserService
+	UserHandler    *handlers.UserHandler
+	AdminHandler   *admin.AdminHandler
+	SessionService *services.SessionService
+	UserService    *services.UserService
 }
 
 func SetupRouter(appCtx *App) *gin.Engine {
@@ -23,7 +21,7 @@ func SetupRouter(appCtx *App) *gin.Engine {
 
 	api := router.Group("/api")
 	RegisterAuthRoutes(api, appCtx.UserHandler, appCtx.SessionService)
-	RegisterAdminRoutes(api, appCtx.AdminUserHandler, appCtx.AdminMovieHandler, appCtx.AdminGenreHandler, appCtx.SessionService, appCtx.UserService)
+	RegisterAdminRoutes(api, appCtx.AdminHandler, appCtx.SessionService, appCtx.UserService)
 
 	return router
 }

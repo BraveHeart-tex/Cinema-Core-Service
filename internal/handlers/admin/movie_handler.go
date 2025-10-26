@@ -7,23 +7,12 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/movies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
-type AdminMovieHandler struct {
-	service *services.AdminService
-	*AdminBaseHandler
-}
-
-func NewAdminMovieHandler(service *services.AdminService) *AdminMovieHandler {
-	return &AdminMovieHandler{
-		service:          service,
-		AdminBaseHandler: &AdminBaseHandler{},
-	}
-}
-
-func (h *AdminMovieHandler) CreateMovie(ctx *gin.Context) {
+// CreateMovie creates a new movie with the provided details.
+// This handler uses h.Services.Movies service for the business logic.
+func (h *AdminHandler) CreateMovie(ctx *gin.Context) {
 	var req movies.CreateMovieRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		responses.Error(ctx, http.StatusBadRequest, "invalid input: "+err.Error())
@@ -32,7 +21,7 @@ func (h *AdminMovieHandler) CreateMovie(ctx *gin.Context) {
 
 	performedByID, performedByEmail := h.getCurrentAdmin(ctx)
 
-	movie, err := h.service.CreateMovie(req)
+	movie, err := h.Services.Movies.CreateMovie(req)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			audit.LogAdminAction(ctx, audit.AdminAuditParams{
@@ -67,4 +56,16 @@ func (h *AdminMovieHandler) CreateMovie(ctx *gin.Context) {
 		"message": "movie created successfully",
 		"movie":   movies.BuildMovieResponse(movie),
 	}, http.StatusCreated)
+}
+
+// UpdateMovie updates an existing movie's details.
+func (h *AdminHandler) UpdateMovie(ctx *gin.Context) {
+	// TODO: Implement when UpdateMovie service method is ready
+	responses.Error(ctx, http.StatusNotImplemented, "not implemented")
+}
+
+// DeleteMovie deletes a movie by ID.
+func (h *AdminHandler) DeleteMovie(ctx *gin.Context) {
+	// TODO: Implement when DeleteMovie service method is ready
+	responses.Error(ctx, http.StatusNotImplemented, "not implemented")
 }
