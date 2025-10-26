@@ -41,9 +41,27 @@ func (s *Service) CreateGenre(name string) (*models.Genre, error) {
 }
 
 // UpdateGenre updates an existing genre's name.
+// Returns ServiceError if genre not found, name conflict, or update fails.
 func (s *Service) UpdateGenre(genreID uint, newName string) (*models.Genre, error) {
-	// TODO: Implement update logic
-	return nil, apperrors.NewInternalError("not implemented")
+	if len(newName) == 0 || len(newName) > 100 {
+		return nil, apperrors.NewBadRequest("genre name must be between 1 and 100 characters")
+	}
+
+	result, err := s.genreRepo.UpdateGenre(genreID, newName)
+	if err != nil {
+
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, apperrors.NewNotFound("genre not found")
+		}
+
+		if errors.Is(err, domainerrors.ErrConflict) {
+			return nil, apperrors.NewConflict("genre with this name already exists")
+		}
+
+		return nil, apperrors.NewInternalError("failed to update genre")
+	}
+
+	return result, nil
 }
 
 // DeleteGenre deletes a genre by ID.

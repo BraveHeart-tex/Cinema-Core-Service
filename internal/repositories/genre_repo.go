@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 
 	dbutils "github.com/BraveHeart-tex/Cinema-Core-Service/internal/dbUtils"
@@ -46,4 +47,24 @@ func (r *GenreRepository) FindById(genreID uint) (*models.Genre, error) {
 
 func (r *GenreRepository) Delete(genreID uint) error {
 	return r.db.Delete(&models.Genre{}, genreID).Error
+}
+
+func (r *GenreRepository) UpdateGenre(id uint, name string) (*models.Genre, error) {
+	var genre models.Genre
+	if err := r.db.First(&genre, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainerrors.ErrNotFound
+		}
+		return nil, err
+	}
+
+	genre.Name = name
+	if err := r.db.Save(&genre).Error; err != nil {
+		if dbutils.IsUniqueConstraintViolationError(err) {
+			return nil, fmt.Errorf("genre with name '%s' already exists: %w", name, domainerrors.ErrConflict)
+		}
+		return nil, err
+	}
+
+	return &genre, nil
 }

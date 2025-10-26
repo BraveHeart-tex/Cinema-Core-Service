@@ -55,8 +55,59 @@ func (h *AdminHandler) CreateGenre(ctx *gin.Context) {
 
 // UpdateGenre updates an existing genre's name.
 func (h *AdminHandler) UpdateGenre(ctx *gin.Context) {
-	// TODO: Implement when UpdateGenre service method is ready
-	responses.Error(ctx, http.StatusNotImplemented, "not implemented")
+	genreIDStr := ctx.Param("genreID")
+	genreID, err := strconv.ParseUint(genreIDStr, 10, 64)
+	if err != nil {
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:  false,
+			Action:   "update_genre",
+			ErrorMsg: "invalid genre id",
+		})
+		responses.Error(ctx, http.StatusBadRequest, "invalid genre id")
+		return
+	}
+
+	var req genre.UpdateGenreRequest
+	if err = ctx.ShouldBindJSON(&req); err != nil {
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Success:  false,
+			Action:   "update_genre",
+			ErrorMsg: "invalid input: " + err.Error(),
+		})
+		responses.Error(ctx, http.StatusBadRequest, "invalid input: "+err.Error())
+		return
+	}
+
+	updatedGenre, err := h.Services.Genres.UpdateGenre(uint(genreID), req.Name)
+	if err != nil {
+		if se, ok := err.(*apperrors.ServiceError); ok {
+			h.logAdminAction(ctx, audit.AdminAuditParams{
+				Action:   "update_genre",
+				Success:  false,
+				ErrorMsg: se.Message,
+			})
+			responses.Error(ctx, se.Code, se.Message)
+			return
+		}
+
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Action:   "update_genre",
+			Success:  false,
+			ErrorMsg: err.Error(),
+		})
+		responses.Error(ctx, http.StatusInternalServerError, "failed to update genre")
+		return
+	}
+
+	h.logAdminAction(ctx, audit.AdminAuditParams{
+		Action:  "update_genre",
+		Success: true,
+	})
+
+	responses.Success(ctx, gin.H{
+		"message": "genre updated successfully",
+		"genre":   genre.BuildUpdateGenreResponse(updatedGenre),
+	})
 }
 
 // DeleteGenre deletes a genre by ID.
