@@ -1,6 +1,10 @@
 package repositories
 
 import (
+	"fmt"
+
+	dbutils "github.com/BraveHeart-tex/Cinema-Core-Service/internal/dbUtils"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"gorm.io/gorm"
 )
@@ -14,7 +18,11 @@ func NewGenreRepository(db *gorm.DB) *GenreRepository {
 }
 
 func (r *GenreRepository) CreateGenre(genre *models.Genre) (*models.Genre, error) {
-	if err := r.db.Create(genre).Error; err != nil {
+	err := r.db.Create(genre).Error
+	if err != nil {
+		if dbutils.IsUniqueConstraintViolationError(err) {
+			return nil, fmt.Errorf("genre with name '%s' already exists: %w", genre.Name, domainerrors.ErrConflict)
+		}
 		return nil, err
 	}
 	return genre, nil

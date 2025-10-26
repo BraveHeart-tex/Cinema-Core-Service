@@ -1,7 +1,10 @@
 package genres
 
 import (
+	"errors"
+
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 )
@@ -23,11 +26,14 @@ func NewService(genreRepo *repositories.GenreRepository) *Service {
 }
 
 // CreateGenre creates a new genre.
-// Returns ServiceError if creation fails.
+// Returns ServiceError if creation fails, including Conflict error for duplicate names.
 func (s *Service) CreateGenre(name string) (*models.Genre, error) {
 	genre := &models.Genre{Name: name}
 	result, err := s.genreRepo.CreateGenre(genre)
 	if err != nil {
+		if errors.Is(err, domainerrors.ErrConflict) {
+			return nil, apperrors.NewConflict("genre with this name already exists")
+		}
 		return nil, apperrors.NewInternalError("failed to create genre")
 	}
 
