@@ -5,6 +5,7 @@ import (
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/auth"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	"github.com/gin-gonic/gin"
@@ -70,7 +71,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		Success: true,
 	})
 	cookies.SetSessionCookie(ctx, result.Session.Token)
-	responses.Success(ctx, buildAuthResponse(result), http.StatusCreated)
+	responses.Success(ctx, auth.BuildAuthResponse(result), http.StatusCreated)
 }
 
 type SignInRequest struct {
@@ -121,5 +122,5 @@ func (h *UserHandler) SignIn(ctx *gin.Context) {
 		Success: true,
 	})
 	cookies.SetSessionCookie(ctx, result.Session.Token)
-	responses.Success(ctx, buildAuthResponse(result), http.StatusOK)
+	responses.Success(ctx, auth.BuildAuthResponse(result), http.StatusOK)
 }
