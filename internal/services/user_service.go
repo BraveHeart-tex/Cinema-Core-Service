@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
@@ -36,16 +37,16 @@ type UserWithSession struct {
 func (s *UserService) CreateUser(data CreateUserData) (*UserWithSession, error) {
 	existing, err := s.repo.FindByEmail(data.Email)
 	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
-		return nil, NewInternalError("failed to check existing user")
+		return nil, apperrors.NewInternalError("failed to check existing user")
 	}
 
 	if existing != nil {
-		return nil, NewConflict("user already exists with the given email")
+		return nil, apperrors.NewConflict("user already exists with the given email")
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, NewInternalError("failed to hash password")
+		return nil, apperrors.NewInternalError("failed to hash password")
 	}
 
 	user := &models.User{
@@ -59,14 +60,14 @@ func (s *UserService) CreateUser(data CreateUserData) (*UserWithSession, error) 
 	createdUser, err := s.repo.Create(user)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrConflict) {
-			return nil, NewConflict("user already exists with the given email")
+			return nil, apperrors.NewConflict("user already exists with the given email")
 		}
-		return nil, NewInternalError("failed to create user")
+		return nil, apperrors.NewInternalError("failed to create user")
 	}
 
 	session, err := s.sessionService.CreateSession(user.Id)
 	if err != nil {
-		return nil, NewInternalError("failed to create session")
+		return nil, apperrors.NewInternalError("failed to create session")
 	}
 
 	return &UserWithSession{
@@ -84,22 +85,22 @@ func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
 	user, err := s.repo.FindByEmail(data.Email)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
-			return nil, NewUnauthorized("invalid email or password")
+			return nil, apperrors.NewUnauthorized("invalid email or password")
 		}
-		return nil, NewInternalError("failed to fetch user")
+		return nil, apperrors.NewInternalError("failed to fetch user")
 	}
 
 	if user == nil {
-		return nil, NewUnauthorized("invalid email or password")
+		return nil, apperrors.NewUnauthorized("invalid email or password")
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(data.Password)) != nil {
-		return nil, NewUnauthorized("invalid email or password")
+		return nil, apperrors.NewUnauthorized("invalid email or password")
 	}
 
 	session, err := s.sessionService.CreateSession(user.Id)
 	if err != nil {
-		return nil, NewInternalError("failed to create session")
+		return nil, apperrors.NewInternalError("failed to create session")
 	}
 
 	return &UserWithSession{

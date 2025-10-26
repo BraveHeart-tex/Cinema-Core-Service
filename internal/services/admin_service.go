@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/movies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
@@ -23,16 +24,16 @@ func (s *AdminService) PromoteToAdmin(userID uint) error {
 	user, err := s.userRepo.FindById(userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
-			return NewNotFound("target user not found")
+			return apperrors.NewNotFound("target user not found")
 		}
-		return NewInternalError("failed to fetch user")
+		return apperrors.NewInternalError("failed to fetch user")
 	}
 	if user == nil {
-		return NewNotFound("target user not found")
+		return apperrors.NewNotFound("target user not found")
 	}
 
 	if user.Role == models.AdminRole {
-		return NewConflict("target user is already an admin")
+		return apperrors.NewConflict("target user is already an admin")
 	}
 
 	return s.userRepo.UpdateRole(user.Id, models.AdminRole)
@@ -41,11 +42,11 @@ func (s *AdminService) PromoteToAdmin(userID uint) error {
 func (s *AdminService) CreateMovie(req movies.CreateMovieRequest) (*models.Movie, error) {
 	genres, err := s.genreRepo.FindMany(req.GenreIDs)
 	if err != nil {
-		return nil, NewInternalError("failed to fetch genres")
+		return nil, apperrors.NewInternalError("failed to fetch genres")
 	}
 
 	if len(genres) != len(req.GenreIDs) {
-		return nil, NewBadRequest("some genre IDs are invalid")
+		return nil, apperrors.NewBadRequest("some genre IDs are invalid")
 	}
 
 	movie := &models.Movie{
@@ -57,7 +58,7 @@ func (s *AdminService) CreateMovie(req movies.CreateMovieRequest) (*models.Movie
 	}
 
 	if err := s.movieRepo.CreateMovie(movie); err != nil {
-		return nil, NewInternalError("failed to create movie")
+		return nil, apperrors.NewInternalError("failed to create movie")
 	}
 
 	return movie, nil

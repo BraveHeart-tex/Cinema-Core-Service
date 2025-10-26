@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/auth"
@@ -47,7 +48,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	})
 	if err != nil {
 		var errMsg string
-		if serviceErr, ok := err.(*services.ServiceError); ok {
+		if serviceErr, ok := err.(*apperrors.ServiceError); ok {
 			errMsg = serviceErr.Message
 			responses.Error(ctx, serviceErr.Code, serviceErr.Message)
 		} else {
@@ -98,7 +99,7 @@ func (h *UserHandler) SignIn(ctx *gin.Context) {
 	})
 	if err != nil {
 		var errMsg string
-		if serviceErr, ok := err.(*services.ServiceError); ok {
+		if serviceErr, ok := err.(*apperrors.ServiceError); ok {
 			errMsg = serviceErr.Message
 			responses.Error(ctx, serviceErr.Code, serviceErr.Message)
 		} else {

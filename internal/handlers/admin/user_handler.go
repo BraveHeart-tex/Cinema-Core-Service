@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
@@ -42,7 +43,7 @@ func (h *AdminUserHandler) PromoteUser(ctx *gin.Context) {
 
 	err = h.service.PromoteToAdmin(uint(userID))
 	if err != nil {
-		if se, ok := err.(*services.ServiceError); ok {
+		if se, ok := err.(*apperrors.ServiceError); ok {
 			audit.LogAdminAction(ctx, audit.AdminAuditParams{
 				Success:          false,
 				Action:           "promote_user",

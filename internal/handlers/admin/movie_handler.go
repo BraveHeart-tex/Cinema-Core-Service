@@ -3,6 +3,7 @@ package admin
 import (
 	"net/http"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/movies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
@@ -33,7 +34,7 @@ func (h *AdminMovieHandler) CreateMovie(ctx *gin.Context) {
 
 	movie, err := h.service.CreateMovie(req)
 	if err != nil {
-		if se, ok := err.(*services.ServiceError); ok {
+		if se, ok := err.(*apperrors.ServiceError); ok {
 			audit.LogAdminAction(ctx, audit.AdminAuditParams{
 				Action:           "create_movie",
 				Success:          false,
