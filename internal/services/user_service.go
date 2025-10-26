@@ -107,3 +107,7 @@ func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
 		Session: session,
 	}, nil
 }
+
+func (s *UserService) FindById(userID uint) (*models.User, error) {
+	return s.repo.FindById(userID)
+}

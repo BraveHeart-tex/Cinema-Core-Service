@@ -11,7 +11,7 @@ import (
 
 const SessionContextKey = "session"
 
-func SessionAuthMiddleware(sessionService *services.SessionService) gin.HandlerFunc {
+func SessionAuthMiddleware(sessionService *services.SessionService, userService *services.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie(cookies.SessionCookieName)
 		if err != nil || token == "" {
@@ -32,7 +32,22 @@ func SessionAuthMiddleware(sessionService *services.SessionService) gin.HandlerF
 			return
 		}
 
-		c.Set(SessionContextKey, session)
+		user, err := userService.FindById(session.UserID)
+		if err != nil {
+			responses.Error(c, http.StatusInternalServerError, "internal error")
+			c.Abort()
+			return
+		}
+		if user == nil {
+			responses.Error(c, http.StatusUnauthorized, "unauthorized")
+			c.Abort()
+			return
+		}
+
+		c.Set(SessionContextKey, map[string]any{
+			"session": session,
+			"user":    user,
+		})
 		c.Next()
 	}
 }

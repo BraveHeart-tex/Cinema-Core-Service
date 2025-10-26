@@ -29,16 +29,25 @@ func main() {
 	logger.Init()
 	audit.Init(logger.Logger)
 
-	// Setup DI
+	// ================= Repositories =================
 	userRepo := repositories.NewUserRepository(database)
 	sessionRepo := repositories.NewSessionRepository(database)
+	adminRepo := repositories.NewAdminRepository(database)
+
+	// ================= Services =================
 	sessionService := services.NewSessionService(sessionRepo)
 	userService := services.NewUserService(userRepo, sessionService)
+	adminService := services.NewAdminService(adminRepo)
+
+	// ================= Handlers =================
 	userHandler := handlers.NewUserHandler(userService)
+	adminHandler := handlers.NewAdminHandler(adminService)
 
 	appCtx := &app.App{
+		AdminHandler:   adminHandler,
 		UserHandler:    userHandler,
 		SessionService: sessionService,
+		UserService:    userService,
 	}
 
 	router := app.SetupRouter(appCtx)

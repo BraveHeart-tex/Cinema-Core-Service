@@ -40,3 +40,15 @@ func (r *UserRepository) Create(user *models.User) (*models.User, error) {
 	}
 	return user, nil
 }
+
+func (r *UserRepository) FindById(userID uint) (*models.User, error) {
+	var user models.User
+	err := r.db.First(&user, userID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainerrors.ErrNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}

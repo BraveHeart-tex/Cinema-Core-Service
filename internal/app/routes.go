@@ -14,3 +14,13 @@ func RegisterAuthRoutes(router *gin.RouterGroup, userHandler *handlers.UserHandl
 		auth.POST("/signin", middleware.GuestOnlyMiddleware(sessionService), userHandler.SignIn)
 	}
 }
+
+func RegisterAdminRoutes(router *gin.RouterGroup, adminHandler *handlers.AdminHandler, sessionService *services.SessionService, userService *services.UserService) {
+	admin := router.Group("/admin")
+	admin.Use(middleware.SessionAuthMiddleware(sessionService, userService), middleware.RoleMiddleware("admin"))
+
+	users := admin.Group("/users")
+	{
+		users.PUT("/:userID/promote", adminHandler.PromoteUser)
+	}
+}
