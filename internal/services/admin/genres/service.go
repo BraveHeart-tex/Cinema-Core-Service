@@ -47,9 +47,18 @@ func (s *Service) UpdateGenre(genreID uint, newName string) (*models.Genre, erro
 		return nil, apperrors.NewBadRequest("genre name must be between 1 and 100 characters")
 	}
 
-	result, err := s.genreRepo.UpdateGenre(genreID, newName)
-	if err != nil {
+	genre, err := s.genreRepo.FindById(genreID)
 
+	if genre == nil {
+		return nil, apperrors.NewNotFound("genre not found")
+	}
+
+	if err != nil {
+		return nil, apperrors.NewInternalError("failed to update genre")
+	}
+
+	err = s.genreRepo.UpdateGenre(genre.ID, newName)
+	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, apperrors.NewNotFound("genre not found")
 		}
@@ -61,7 +70,7 @@ func (s *Service) UpdateGenre(genreID uint, newName string) (*models.Genre, erro
 		return nil, apperrors.NewInternalError("failed to update genre")
 	}
 
-	return result, nil
+	return &models.Genre{ID: genreID, Name: newName}, nil
 }
 
 // DeleteGenre deletes a genre by ID.
