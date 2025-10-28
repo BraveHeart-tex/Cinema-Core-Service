@@ -22,7 +22,7 @@ func NewUserService(repo *repositories.UserRepository, sessionService *SessionSe
 	}
 }
 
-type CreateUserData struct {
+type SignUpData struct {
 	Name     string
 	Surname  string
 	Email    string
@@ -34,7 +34,7 @@ type UserWithSession struct {
 	Session *models.SessionWithToken
 }
 
-func (s *UserService) CreateUser(data CreateUserData) (*UserWithSession, error) {
+func (s *UserService) SignUp(data SignUpData) (*UserWithSession, error) {
 	existing, err := s.repo.FindByEmail(data.Email)
 	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, apperrors.NewInternalError("failed to check existing user")

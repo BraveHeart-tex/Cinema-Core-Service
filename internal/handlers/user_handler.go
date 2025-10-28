@@ -40,7 +40,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	result, err := h.service.CreateUser(services.CreateUserData{
+	result, err := h.service.SignUp(services.SignUpData{
 		Name:     req.Name,
 		Surname:  req.Surname,
 		Email:    req.Email,
