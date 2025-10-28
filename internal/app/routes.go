@@ -17,6 +17,9 @@ func RegisterAuthRoutes(router *gin.RouterGroup, userHandler *handlers.UserHandl
 	}
 }
 
+// RegisterAdminRoutes registers all admin routes with the router group.
+// It uses the SessionAuthMiddleware and RoleMiddleware to validate the session and role for each route.
+// All routes are grouped by domain (users, movies, genres, tickets)
 func RegisterAdminRoutes(router *gin.RouterGroup,
 	adminHandler *admin.AdminHandler,
 	sessionService *sessionServices.SessionService,

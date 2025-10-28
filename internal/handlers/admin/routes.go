@@ -11,6 +11,7 @@ func RegisterAdminRoutes(router *gin.RouterGroup, handler *AdminHandler) {
 	registerUserRoutes(router, handler)
 	registerMovieRoutes(router, handler)
 	registerGenreRoutes(router, handler)
+	registerTheaterRoutes(router, handler)
 }
 
 // registerUserRoutes registers user management routes.
@@ -42,5 +43,14 @@ func registerGenreRoutes(router *gin.RouterGroup, handler *AdminHandler) {
 		genres.POST("/", handler.CreateGenre)
 		genres.PUT("/:genreID", handler.UpdateGenre)
 		genres.DELETE("/:genreID", handler.DeleteGenre)
+	}
+}
+
+// registerTheaterRoutes registers theater management routes.
+// Handlers access services via handler.Services.Theaters.
+func registerTheaterRoutes(router *gin.RouterGroup, handler *AdminHandler) {
+	theaters := router.Group("/theaters")
+	{
+		theaters.POST("/", handler.CreateTheater)
 	}
 }
