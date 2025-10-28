@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
+	services "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/user"
 	"github.com/gin-gonic/gin"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
+	services "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
 	"github.com/gin-gonic/gin"
 )
 

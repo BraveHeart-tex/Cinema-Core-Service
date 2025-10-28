@@ -11,8 +11,9 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers/admin"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/logger"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
 	adminServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/admin"
+	sessionServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
+	userServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/user"
 )
 
 func main() {
@@ -38,8 +39,8 @@ func main() {
 	movieRepo := repositories.NewMovieRepository(database)
 
 	// ================= Services =================
-	sessionService := services.NewSessionService(sessionRepo)
-	userService := services.NewUserService(userRepo, sessionService)
+	sessionService := sessionServices.NewSessionService(sessionRepo)
+	userService := userServices.NewUserService(userRepo, sessionService)
 
 	// Admin services - each domain gets its own service
 	// Dependency flow: Repositories -> Domain Services -> Aggregator

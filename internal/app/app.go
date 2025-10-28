@@ -4,15 +4,16 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/handlers/admin"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/middleware"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
+	sessionServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
+	userServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/user"
 	"github.com/gin-gonic/gin"
 )
 
 type App struct {
 	UserHandler    *handlers.UserHandler
 	AdminHandler   *admin.AdminHandler
-	SessionService *services.SessionService
-	UserService    *services.UserService
+	SessionService *sessionServices.SessionService
+	UserService    *userServices.UserService
 }
 
 func SetupRouter(appCtx *App) *gin.Engine {

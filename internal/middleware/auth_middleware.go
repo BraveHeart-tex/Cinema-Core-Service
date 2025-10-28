@@ -5,13 +5,14 @@ import (
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
-	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services"
+	sessionServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
+	userServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/user"
 	"github.com/gin-gonic/gin"
 )
 
 const SessionContextKey = "session"
 
-func SessionAuthMiddleware(sessionService *services.SessionService, userService *services.UserService) gin.HandlerFunc {
+func SessionAuthMiddleware(sessionService *sessionServices.SessionService, userService *userServices.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie(cookies.SessionCookieName)
 		if err != nil || token == "" {

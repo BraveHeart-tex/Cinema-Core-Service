@@ -7,15 +7,16 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
+	services "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	repo           *repositories.UserRepository
-	sessionService *SessionService
+	sessionService *services.SessionService
 }
 
-func NewUserService(repo *repositories.UserRepository, sessionService *SessionService) *UserService {
+func NewUserService(repo *repositories.UserRepository, sessionService *services.SessionService) *UserService {
 	return &UserService{
 		repo:           repo,
 		sessionService: sessionService,
