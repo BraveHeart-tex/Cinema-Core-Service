@@ -57,3 +57,11 @@ func (r *TheaterRepository) Update(id uint, name string) error {
 
 	return nil
 }
+
+func (r *TheaterRepository) FindById(theaterId uint) (*models.Theater, error) {
+	var theater models.Theater
+	if err := r.db.First(&theater, theaterId).Error; err != nil {
+		return nil, err
+	}
+	return &theater, nil
+}

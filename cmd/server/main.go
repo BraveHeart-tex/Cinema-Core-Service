@@ -38,6 +38,7 @@ func main() {
 	genreRepo := repositories.NewGenreRepository(database)
 	movieRepo := repositories.NewMovieRepository(database)
 	theaterRepo := repositories.NewTheaterRepository(database)
+	showtimeRepo := repositories.NewShowtimeRepository(database)
 
 	// ================= Services =================
 	sessionService := sessionServices.NewSessionService(sessionRepo)
@@ -45,7 +46,7 @@ func main() {
 
 	// Admin services - each domain gets its own service
 	// Dependency flow: Repositories -> Domain Services -> Aggregator
-	adminServices := adminServices.NewServices(userRepo, genreRepo, movieRepo, theaterRepo)
+	adminServices := adminServices.NewServices(userRepo, genreRepo, movieRepo, theaterRepo, showtimeRepo)
 
 	// ================= Handlers =================
 	userHandler := handlers.NewUserHandler(userService)

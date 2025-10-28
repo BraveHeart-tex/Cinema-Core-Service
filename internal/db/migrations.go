@@ -16,6 +16,7 @@ func Migrate(db *gorm.DB) {
 		&models.Genre{},
 		&models.Movie{},
 		&models.Theater{},
+		&models.Showtime{},
 	)
 
 	if err != nil {

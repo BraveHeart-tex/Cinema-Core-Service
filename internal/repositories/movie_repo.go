@@ -16,3 +16,11 @@ func NewMovieRepository(db *gorm.DB) *MovieRepository {
 func (r *MovieRepository) CreateMovie(movie *models.Movie) error {
 	return r.db.Create(movie).Error
 }
+
+func (r *MovieRepository) FindById(movieID uint) (*models.Movie, error) {
+	var movie models.Movie
+	if err := r.db.First(&movie, movieID).Error; err != nil {
+		return nil, err
+	}
+	return &movie, nil
+}
