@@ -7,7 +7,7 @@ type Session struct {
 	UserID         uint64    `gorm:"not null;index"`
 	User           User      `gorm:"constraint:OnDelete:CASCADE;"`
 	SecretHash     []byte    `gorm:"not null"`
-	LastVerifiedAt time.Time `gorm:"autoUpdateTime"`
+	LastVerifiedAt time.Time `gorm:"autoUpdateTime;index"`
 	CreatedAt      time.Time `gorm:"autoCreateTime"`
 }
 

@@ -137,3 +137,7 @@ func (s *SessionService) GetSession(ctx context.Context, sessionID string) (*mod
 
 	return session, nil
 }
+
+func (s *SessionService) CleanupExpiredSessions(ctx context.Context) error {
+	return s.repo.DeleteSessionsWhereLastVerifiedOlderThan(ctx, inactivityTimeout)
+}
