@@ -44,7 +44,7 @@ func main() {
 	showtimeRepo := repositories.NewShowtimeRepository(database)
 
 	// ================= Services =================
-	sessionService := sessionServices.NewSessionService(sessionRepo)
+	sessionService := sessionServices.NewSessionService(sessionRepo, txManager)
 	userService := userServices.NewUserService(userRepo, sessionService, txManager)
 
 	// Admin services - each domain gets its own service

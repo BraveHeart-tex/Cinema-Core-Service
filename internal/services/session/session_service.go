@@ -3,30 +3,48 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"time"
 
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/utils"
+	"gorm.io/gorm"
 )
 
 type SessionService struct {
-	repo *repositories.SessionRepository
+	repo      *repositories.SessionRepository
+	txManager db.TxManager
 }
 
-func NewSessionService(repo *repositories.SessionRepository) *SessionService {
-	return &SessionService{repo: repo}
+func NewSessionService(repo *repositories.SessionRepository, txManager db.TxManager) *SessionService {
+	return &SessionService{repo: repo, txManager: txManager}
 }
 
 var (
 	inactivityTimeout     = 10 * 24 * time.Hour // 10 days
 	activityCheckInterval = 1 * time.Hour       // 1 hour
+	sessionLifetime       = 30 * 24 * time.Hour // 30 days
 )
 
-func (s *SessionService) CreateSession(userID uint64) (*models.SessionWithToken, error) {
+func (s *SessionService) isExpired(session *models.Session) bool {
 	now := time.Now()
+	if now.After(session.ExpiresAt) {
+		return true
+	}
+	if now.Sub(session.LastVerifiedAt) >= inactivityTimeout {
+		return true
+	}
+	return false
+}
+
+func (s *SessionService) CreateSession(ctx context.Context, userID uint64) (*models.SessionWithToken, error) {
+	var err error
+	now := time.Now()
+	expiry := now.Add(sessionLifetime)
 	id, err := utils.GenerateSecureRandomString()
 	if err != nil {
 		return nil, err
@@ -46,17 +64,34 @@ func (s *SessionService) CreateSession(userID uint64) (*models.SessionWithToken,
 		SecretHash: secretHash,
 		CreatedAt:  now,
 		UserID:     userID,
+		ExpiresAt:  expiry,
 	}
 
-	createdSession, err := s.repo.CreateSession(session)
+	var result *models.SessionWithToken
+
+	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
+		txRepo := *s.repo
+		txRepo.WithTx(tx)
+
+		var createdSession *models.Session
+		createdSession, err = txRepo.CreateSession(session)
+		if err != nil {
+			return err
+		}
+
+		result = &models.SessionWithToken{
+			Session: *createdSession,
+			Token:   token,
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.SessionWithToken{
-		Session: *createdSession,
-		Token:   token,
-	}, nil
+	return result, nil
 }
 
 func (s *SessionService) ValidateSessionToken(token string) (*models.Session, error) {
@@ -73,6 +108,11 @@ func (s *SessionService) ValidateSessionToken(token string) (*models.Session, er
 		return nil, err
 	}
 	if session == nil {
+		return nil, nil
+	}
+
+	if s.isExpired(session) {
+		_ = s.repo.DeleteSession(sessionID)
 		return nil, nil
 	}
 
@@ -100,10 +140,14 @@ func (s *SessionService) GetSession(sessionID string) (*models.Session, error) {
 		return nil, nil
 	}
 
-	if time.Since(session.LastVerifiedAt) >= inactivityTimeout {
+	if s.isExpired(session) {
 		_ = s.repo.DeleteSession(sessionID)
 		return nil, nil
 	}
 
 	return session, nil
+}
+
+func (s *SessionService) CleanupExpiredSessions() error {
+	return s.repo.DeleteExpiredSessions(time.Now())
 }

@@ -41,7 +41,7 @@ type UserWithSession struct {
 }
 
 func (s *UserService) SignUp(ctx context.Context, data SignUpData) (*UserWithSession, error) {
-	// Check if user exists outside of transaction
+	var err error
 	existing, err := s.repo.FindByEmail(data.Email)
 	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, apperrors.NewInternalError("failed to check existing user")
@@ -70,7 +70,8 @@ func (s *UserService) SignUp(ctx context.Context, data SignUpData) (*UserWithSes
 		txRepo := *s.repo
 		txRepo.WithTx(tx)
 
-		createdUser, err := txRepo.Create(user)
+		var createdUser *models.User
+		createdUser, err = txRepo.Create(user)
 		if err != nil {
 			if errors.Is(err, domainerrors.ErrConflict) {
 				return apperrors.NewConflict("user already exists with the given email")
@@ -78,7 +79,8 @@ func (s *UserService) SignUp(ctx context.Context, data SignUpData) (*UserWithSes
 			return apperrors.NewInternalError("failed to create user")
 		}
 
-		session, err := s.sessionService.CreateSession(createdUser.Id)
+		var session *models.SessionWithToken
+		session, err = s.sessionService.CreateSession(ctx, createdUser.Id)
 		if err != nil {
 			return apperrors.NewInternalError("failed to create session")
 		}
@@ -104,7 +106,10 @@ type SignInData struct {
 }
 
 func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSession, error) {
-	user, err := s.repo.FindByEmail(data.Email)
+	var err error
+
+	var user *models.User
+	user, err = s.repo.FindByEmail(data.Email)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, apperrors.NewUnauthorized("invalid email or password")
@@ -123,7 +128,8 @@ func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSes
 	var result *UserWithSession
 
 	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
-		session, err := s.sessionService.CreateSession(user.Id)
+		var session *models.SessionWithToken
+		session, err = s.sessionService.CreateSession(ctx, user.Id)
 		if err != nil {
 			return apperrors.NewInternalError("failed to create session")
 		}

@@ -9,6 +9,7 @@ type Session struct {
 	SecretHash     []byte    `gorm:"not null"`
 	LastVerifiedAt time.Time `gorm:"autoUpdateTime"`
 	CreatedAt      time.Time `gorm:"autoCreateTime"`
+	ExpiresAt      time.Time `gorm:"not null;index"`
 }
 
 type SessionWithToken struct {
