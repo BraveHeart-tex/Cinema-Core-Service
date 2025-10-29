@@ -1,25 +1,30 @@
 package services
 
 import (
+	"context"
 	"errors"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	services "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
 	repo           *repositories.UserRepository
 	sessionService *services.SessionService
+	txManager      db.TxManager
 }
 
-func NewUserService(repo *repositories.UserRepository, sessionService *services.SessionService) *UserService {
+func NewUserService(repo *repositories.UserRepository, sessionService *services.SessionService, txManager db.TxManager) *UserService {
 	return &UserService{
 		repo:           repo,
 		sessionService: sessionService,
+		txManager:      txManager,
 	}
 }
 
@@ -35,7 +40,8 @@ type UserWithSession struct {
 	Session *models.SessionWithToken
 }
 
-func (s *UserService) SignUp(data SignUpData) (*UserWithSession, error) {
+func (s *UserService) SignUp(ctx context.Context, data SignUpData) (*UserWithSession, error) {
+	// Check if user exists outside of transaction
 	existing, err := s.repo.FindByEmail(data.Email)
 	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, apperrors.NewInternalError("failed to check existing user")
@@ -58,23 +64,38 @@ func (s *UserService) SignUp(data SignUpData) (*UserWithSession, error) {
 		Role:           models.UserRole,
 	}
 
-	createdUser, err := s.repo.Create(user)
-	if err != nil {
-		if errors.Is(err, domainerrors.ErrConflict) {
-			return nil, apperrors.NewConflict("user already exists with the given email")
+	var result *UserWithSession
+
+	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
+		txRepo := *s.repo
+		txRepo.WithTx(tx)
+
+		createdUser, err := txRepo.Create(user)
+		if err != nil {
+			if errors.Is(err, domainerrors.ErrConflict) {
+				return apperrors.NewConflict("user already exists with the given email")
+			}
+			return apperrors.NewInternalError("failed to create user")
 		}
-		return nil, apperrors.NewInternalError("failed to create user")
-	}
 
-	session, err := s.sessionService.CreateSession(user.Id)
+		session, err := s.sessionService.CreateSession(createdUser.Id)
+		if err != nil {
+			return apperrors.NewInternalError("failed to create session")
+		}
+
+		result = &UserWithSession{
+			User:    createdUser,
+			Session: session,
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return nil, apperrors.NewInternalError("failed to create session")
+		return nil, err
 	}
 
-	return &UserWithSession{
-		User:    createdUser,
-		Session: session,
-	}, nil
+	return result, nil
 }
 
 type SignInData struct {
@@ -82,7 +103,7 @@ type SignInData struct {
 	Password string
 }
 
-func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
+func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSession, error) {
 	user, err := s.repo.FindByEmail(data.Email)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -99,15 +120,27 @@ func (s *UserService) SignIn(data SignInData) (*UserWithSession, error) {
 		return nil, apperrors.NewUnauthorized("invalid email or password")
 	}
 
-	session, err := s.sessionService.CreateSession(user.Id)
+	var result *UserWithSession
+
+	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
+		session, err := s.sessionService.CreateSession(user.Id)
+		if err != nil {
+			return apperrors.NewInternalError("failed to create session")
+		}
+
+		result = &UserWithSession{
+			User:    user,
+			Session: session,
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return nil, apperrors.NewInternalError("failed to create session")
+		return nil, err
 	}
 
-	return &UserWithSession{
-		User:    user,
-		Session: session,
-	}, nil
+	return result, nil
 }
 
 func (s *UserService) FindById(userID uint) (*models.User, error) {

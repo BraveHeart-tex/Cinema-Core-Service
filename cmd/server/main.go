@@ -32,6 +32,9 @@ func main() {
 	logger.Init()
 	audit.Init(logger.Logger)
 
+	// Initialize transaction manager
+	txManager := db.NewGormTxManager(database)
+
 	// ================= Repositories =================
 	userRepo := repositories.NewUserRepository(database)
 	sessionRepo := repositories.NewSessionRepository(database)
@@ -42,7 +45,7 @@ func main() {
 
 	// ================= Services =================
 	sessionService := sessionServices.NewSessionService(sessionRepo)
-	userService := userServices.NewUserService(userRepo, sessionService)
+	userService := userServices.NewUserService(userRepo, sessionService, txManager)
 
 	// Admin services - each domain gets its own service
 	// Dependency flow: Repositories -> Domain Services -> Aggregator

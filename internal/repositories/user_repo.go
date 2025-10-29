@@ -9,17 +9,19 @@ import (
 )
 
 type UserRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+	return &UserRepository{
+		BaseRepository: NewBaseRepository(db),
+	}
 }
 
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	err := r.db.Where("email = ?", email).First(&user).Error
+	err := r.DB().Where("email = ?", email).First(&user).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -32,7 +34,7 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 }
 
 func (r *UserRepository) Create(user *models.User) (*models.User, error) {
-	if err := r.db.Create(user).Error; err != nil {
+	if err := r.DB().Create(user).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return nil, domainerrors.ErrConflict
 		}
@@ -43,7 +45,7 @@ func (r *UserRepository) Create(user *models.User) (*models.User, error) {
 
 func (r *UserRepository) FindById(userID uint) (*models.User, error) {
 	var user models.User
-	err := r.db.First(&user, userID).Error
+	err := r.DB().First(&user, userID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, domainerrors.ErrNotFound
@@ -54,5 +56,5 @@ func (r *UserRepository) FindById(userID uint) (*models.User, error) {
 }
 
 func (r *UserRepository) UpdateRole(userID uint, newRole string) error {
-	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("role", newRole).Error
+	return r.DB().Model(&models.User{}).Where("id = ?", userID).Update("role", newRole).Error
 }
