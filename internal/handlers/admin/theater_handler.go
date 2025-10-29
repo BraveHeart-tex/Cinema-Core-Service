@@ -79,6 +79,14 @@ func (h *AdminHandler) UpdateTheaterName(ctx *gin.Context) {
 			responses.Error(ctx, se.Code, se.Message)
 			return
 		}
+
+		h.logAdminAction(ctx, audit.AdminAuditParams{
+			Action:   "update_theater_name",
+			Success:  false,
+			ErrorMsg: err.Error(),
+		})
+		responses.Error(ctx, http.StatusInternalServerError, "Failed to update theater name")
+		return
 	}
 
 	h.logAdminAction(ctx, audit.AdminAuditParams{

@@ -53,6 +53,7 @@ func registerTheaterRoutes(router *gin.RouterGroup, handler *AdminHandler) {
 	theaters := router.Group("/theaters")
 	{
 		theaters.POST("/", handler.CreateTheater)
+		theaters.PUT("/:theaterID", handler.UpdateTheaterName)
 	}
 }
 
