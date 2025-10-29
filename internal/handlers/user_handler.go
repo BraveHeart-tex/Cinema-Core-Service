@@ -40,7 +40,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	result, err := h.service.SignUp(services.SignUpData{
+	result, err := h.service.SignUp(ctx, services.SignUpData{
 		Name:     req.Name,
 		Surname:  req.Surname,
 		Email:    req.Email,
@@ -93,7 +93,7 @@ func (h *UserHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	result, err := h.service.SignIn(services.SignInData{
+	result, err := h.service.SignIn(ctx, services.SignInData{
 		Email:    req.Email,
 		Password: req.Password,
 	})
