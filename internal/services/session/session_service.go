@@ -26,14 +26,10 @@ func NewSessionService(repo *repositories.SessionRepository, txManager db.TxMana
 var (
 	inactivityTimeout     = 10 * 24 * time.Hour // 10 days
 	activityCheckInterval = 1 * time.Hour       // 1 hour
-	sessionLifetime       = 30 * 24 * time.Hour // 30 days
 )
 
 func (s *SessionService) isExpired(session *models.Session) bool {
 	now := time.Now()
-	if now.After(session.ExpiresAt) {
-		return true
-	}
 	if now.Sub(session.LastVerifiedAt) >= inactivityTimeout {
 		return true
 	}
@@ -43,7 +39,6 @@ func (s *SessionService) isExpired(session *models.Session) bool {
 func (s *SessionService) CreateSession(ctx context.Context, userID uint64) (*models.SessionWithToken, error) {
 	var err error
 	now := time.Now()
-	expiry := now.Add(sessionLifetime)
 	id, err := utils.GenerateSecureRandomString()
 	if err != nil {
 		return nil, err
@@ -63,7 +58,6 @@ func (s *SessionService) CreateSession(ctx context.Context, userID uint64) (*mod
 		SecretHash: secretHash,
 		CreatedAt:  now,
 		UserID:     userID,
-		ExpiresAt:  expiry,
 	}
 
 	var result *models.SessionWithToken
@@ -142,8 +136,4 @@ func (s *SessionService) GetSession(ctx context.Context, sessionID string) (*mod
 	}
 
 	return session, nil
-}
-
-func (s *SessionService) CleanupExpiredSessions(ctx context.Context) error {
-	return s.repo.DeleteExpiredSessions(ctx, time.Now())
 }

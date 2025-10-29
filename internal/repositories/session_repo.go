@@ -40,7 +40,3 @@ func (r *SessionRepository) GetSession(ctx context.Context, sessionID string) (*
 func (r *SessionRepository) UpdateSessionLastVerifiedAt(ctx context.Context, sessionID string) error {
 	return r.DB(ctx).Model(&models.Session{}).Where("id = ?", sessionID).Update("last_verified_at", time.Now()).Error
 }
-
-func (r *SessionRepository) DeleteExpiredSessions(ctx context.Context, now time.Time) error {
-	return r.DB(ctx).Where("expires_at <= ?", now).Delete(&models.Session{}).Error
-}
