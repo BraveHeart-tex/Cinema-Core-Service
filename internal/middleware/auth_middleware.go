@@ -29,6 +29,7 @@ func SessionAuthMiddleware(sessionService *sessionServices.SessionService, userS
 			return
 		}
 		if session == nil {
+			cookies.ClearSessionCookie(ctx)
 			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
 			ctx.Abort()
 			return
@@ -41,6 +42,7 @@ func SessionAuthMiddleware(sessionService *sessionServices.SessionService, userS
 			return
 		}
 		if user == nil {
+			cookies.ClearSessionCookie(ctx)
 			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
 			ctx.Abort()
 			return

@@ -4,8 +4,6 @@ package services
 
 import (
 	"context"
-	"errors"
-	"strings"
 	"time"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
@@ -85,13 +83,10 @@ func (s *SessionService) CreateSession(ctx context.Context, userID uint64) (*mod
 }
 
 func (s *SessionService) ValidateSessionToken(ctx context.Context, token string) (*models.Session, error) {
-	now := time.Now()
-
-	parts := strings.Split(token, ".")
-	if len(parts) != 2 {
-		return nil, errors.New("invalid token format")
+	sessionID, sessionSecret, err := utils.ParseSessionToken(token)
+	if err != nil {
+		return nil, err
 	}
-	sessionID, sessionSecret := parts[0], parts[1]
 
 	session, err := s.repo.GetSession(ctx, sessionID)
 	if err != nil {
@@ -113,6 +108,7 @@ func (s *SessionService) ValidateSessionToken(ctx context.Context, token string)
 	}
 
 	if time.Since(session.LastVerifiedAt) >= activityCheckInterval {
+		now := time.Now()
 		session.LastVerifiedAt = now
 		_ = s.repo.UpdateSessionLastVerifiedAt(ctx, sessionID)
 	}
@@ -140,4 +136,23 @@ func (s *SessionService) GetSession(ctx context.Context, sessionID string) (*mod
 
 func (s *SessionService) CleanupExpiredSessions(ctx context.Context) error {
 	return s.repo.DeleteSessionsWhereLastVerifiedOlderThan(ctx, inactivityTimeout)
+}
+
+func (s *SessionService) DeleteSession(ctx context.Context, token string) error {
+	sessionId, _, err := utils.ParseSessionToken(token)
+	if err != nil {
+		return err
+	}
+
+	return s.txManager.WithTransaction(ctx, func(ctx context.Context) error {
+		session, err := s.repo.GetSession(ctx, sessionId)
+		if err != nil {
+			return err
+		}
+		if session == nil {
+			return nil
+		}
+
+		return s.repo.DeleteSession(ctx, sessionId)
+	})
 }

@@ -9,11 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuthRoutes(router *gin.RouterGroup, userHandler *handlers.UserHandler, sessionService *sessionServices.SessionService) {
+func RegisterAuthRoutes(router *gin.RouterGroup, userHandler *handlers.UserHandler, sessionService *sessionServices.SessionService, userService *userServices.UserService) {
 	auth := router.Group("/auth")
 	{
 		auth.POST("/signup", middleware.GuestOnlyMiddleware(sessionService), userHandler.SignUp)
 		auth.POST("/signin", middleware.GuestOnlyMiddleware(sessionService), userHandler.SignIn)
+		auth.POST("/signout", middleware.SessionAuthMiddleware(sessionService, userService), userHandler.SignOut)
 	}
 }
 

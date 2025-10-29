@@ -8,6 +8,7 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/cookies"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/dto/auth"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/responses"
+	sessionServices "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
 	services "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/user"
 	"github.com/gin-gonic/gin"
 )
@@ -20,11 +21,12 @@ type SignUpRequest struct {
 }
 
 type UserHandler struct {
-	service *services.UserService
+	service        *services.UserService
+	sessionService *sessionServices.SessionService
 }
 
-func NewUserHandler(service *services.UserService) *UserHandler {
-	return &UserHandler{service: service}
+func NewUserHandler(service *services.UserService, sessionService *sessionServices.SessionService) *UserHandler {
+	return &UserHandler{service: service, sessionService: sessionService}
 }
 
 func (h *UserHandler) SignUp(ctx *gin.Context) {
@@ -124,4 +126,26 @@ func (h *UserHandler) SignIn(ctx *gin.Context) {
 	})
 	cookies.SetSessionCookie(ctx, result.Session.Token)
 	responses.Success(ctx, auth.BuildAuthResponse(result), http.StatusOK)
+}
+
+func (h *UserHandler) SignOut(ctx *gin.Context) {
+	token, err := ctx.Cookie(cookies.SessionCookieName)
+	if err != nil || token == "" {
+		responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	err = h.sessionService.DeleteSession(ctx.Request.Context(), token)
+	if err != nil {
+		audit.LogEvent(ctx, audit.AuditEvent{
+			Event:    "auth.signout.failure",
+			Success:  false,
+			ErrorMsg: err.Error(),
+		})
+		responses.Error(ctx, http.StatusInternalServerError, "internal error")
+		return
+	}
+
+	cookies.ClearSessionCookie(ctx)
+	responses.Success(ctx, gin.H{"message": "signed out successfully"}, http.StatusOK)
 }

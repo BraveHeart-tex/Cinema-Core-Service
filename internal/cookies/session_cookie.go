@@ -23,3 +23,15 @@ func SetSessionCookie(ctx *gin.Context, token string) {
 		true,
 	)
 }
+
+func ClearSessionCookie(ctx *gin.Context) {
+	ctx.SetCookie(
+		SessionCookieName,
+		"",
+		-1,
+		"/",
+		"",
+		os.Getenv("APP_ENV") == "production",
+		true,
+	)
+}

@@ -52,7 +52,7 @@ func main() {
 	adminServices := adminServices.NewServices(userRepo, genreRepo, movieRepo, theaterRepo, showtimeRepo)
 
 	// ================= Handlers =================
-	userHandler := handlers.NewUserHandler(userService)
+	userHandler := handlers.NewUserHandler(userService, sessionService)
 
 	// Admin handler aggregates all domain services
 	// This single handler has access to all domain operations via adminServices

@@ -21,7 +21,7 @@ func SetupRouter(appCtx *App) *gin.Engine {
 	router.Use(middleware.RequestIDMiddleware())
 
 	api := router.Group("/api")
-	RegisterAuthRoutes(api, appCtx.UserHandler, appCtx.SessionService)
+	RegisterAuthRoutes(api, appCtx.UserHandler, appCtx.SessionService, appCtx.UserService)
 	RegisterAdminRoutes(api, appCtx.AdminHandler, appCtx.SessionService, appCtx.UserService)
 
 	return router
