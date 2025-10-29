@@ -12,7 +12,6 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/models"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/utils"
-	"gorm.io/gorm"
 )
 
 type SessionService struct {
@@ -69,12 +68,9 @@ func (s *SessionService) CreateSession(ctx context.Context, userID uint64) (*mod
 
 	var result *models.SessionWithToken
 
-	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
-		txRepo := *s.repo
-		txRepo.WithTx(tx)
-
+	err = s.txManager.WithTransaction(ctx, func(ctx context.Context) error {
 		var createdSession *models.Session
-		createdSession, err = txRepo.CreateSession(session)
+		createdSession, err = s.repo.CreateSession(ctx, session)
 		if err != nil {
 			return err
 		}
@@ -94,7 +90,7 @@ func (s *SessionService) CreateSession(ctx context.Context, userID uint64) (*mod
 	return result, nil
 }
 
-func (s *SessionService) ValidateSessionToken(token string) (*models.Session, error) {
+func (s *SessionService) ValidateSessionToken(ctx context.Context, token string) (*models.Session, error) {
 	now := time.Now()
 
 	parts := strings.Split(token, ".")
@@ -103,7 +99,7 @@ func (s *SessionService) ValidateSessionToken(token string) (*models.Session, er
 	}
 	sessionID, sessionSecret := parts[0], parts[1]
 
-	session, err := s.repo.GetSession(sessionID)
+	session, err := s.repo.GetSession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +108,7 @@ func (s *SessionService) ValidateSessionToken(token string) (*models.Session, er
 	}
 
 	if s.isExpired(session) {
-		_ = s.repo.DeleteSession(sessionID)
+		_ = s.repo.DeleteSession(ctx, sessionID)
 		return nil, nil
 	}
 
@@ -124,14 +120,14 @@ func (s *SessionService) ValidateSessionToken(token string) (*models.Session, er
 
 	if time.Since(session.LastVerifiedAt) >= activityCheckInterval {
 		session.LastVerifiedAt = now
-		_ = s.repo.UpdateSessionLastVerifiedAt(sessionID)
+		_ = s.repo.UpdateSessionLastVerifiedAt(ctx, sessionID)
 	}
 
 	return session, nil
 }
 
-func (s *SessionService) GetSession(sessionID string) (*models.Session, error) {
-	session, err := s.repo.GetSession(sessionID)
+func (s *SessionService) GetSession(ctx context.Context, sessionID string) (*models.Session, error) {
+	session, err := s.repo.GetSession(ctx, sessionID)
 
 	if err != nil {
 		return nil, err
@@ -141,13 +137,13 @@ func (s *SessionService) GetSession(sessionID string) (*models.Session, error) {
 	}
 
 	if s.isExpired(session) {
-		_ = s.repo.DeleteSession(sessionID)
+		_ = s.repo.DeleteSession(ctx, sessionID)
 		return nil, nil
 	}
 
 	return session, nil
 }
 
-func (s *SessionService) CleanupExpiredSessions() error {
-	return s.repo.DeleteExpiredSessions(time.Now())
+func (s *SessionService) CleanupExpiredSessions(ctx context.Context) error {
+	return s.repo.DeleteExpiredSessions(ctx, time.Now())
 }

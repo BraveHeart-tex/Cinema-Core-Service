@@ -11,7 +11,6 @@ import (
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	services "github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/session"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -42,7 +41,7 @@ type UserWithSession struct {
 
 func (s *UserService) SignUp(ctx context.Context, data SignUpData) (*UserWithSession, error) {
 	var err error
-	existing, err := s.repo.FindByEmail(data.Email)
+	existing, err := s.repo.FindByEmail(ctx, data.Email)
 	if err != nil && !errors.Is(err, domainerrors.ErrNotFound) {
 		return nil, apperrors.NewInternalError("failed to check existing user")
 	}
@@ -66,12 +65,9 @@ func (s *UserService) SignUp(ctx context.Context, data SignUpData) (*UserWithSes
 
 	var result *UserWithSession
 
-	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
-		txRepo := *s.repo
-		txRepo.WithTx(tx)
-
+	err = s.txManager.WithTransaction(ctx, func(ctx context.Context) error {
 		var createdUser *models.User
-		createdUser, err = txRepo.Create(user)
+		createdUser, err = s.repo.Create(ctx, user)
 		if err != nil {
 			if errors.Is(err, domainerrors.ErrConflict) {
 				return apperrors.NewConflict("user already exists with the given email")
@@ -109,7 +105,7 @@ func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSes
 	var err error
 
 	var user *models.User
-	user, err = s.repo.FindByEmail(data.Email)
+	user, err = s.repo.FindByEmail(ctx, data.Email)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, apperrors.NewUnauthorized("invalid email or password")
@@ -127,7 +123,7 @@ func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSes
 
 	var result *UserWithSession
 
-	err = s.txManager.WithTransaction(ctx, func(tx *gorm.DB) error {
+	err = s.txManager.WithTransaction(ctx, func(ctx context.Context) error {
 		var session *models.SessionWithToken
 		session, err = s.sessionService.CreateSession(ctx, user.Id)
 		if err != nil {
@@ -149,6 +145,6 @@ func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSes
 	return result, nil
 }
 
-func (s *UserService) FindById(userID uint64) (*models.User, error) {
-	return s.repo.FindById(userID)
+func (s *UserService) FindById(ctx context.Context, userID uint64) (*models.User, error) {
+	return s.repo.FindById(ctx, userID)
 }

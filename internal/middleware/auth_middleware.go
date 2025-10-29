@@ -13,42 +13,43 @@ import (
 const SessionContextKey = "session"
 
 func SessionAuthMiddleware(sessionService *sessionServices.SessionService, userService *userServices.UserService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token, err := c.Cookie(cookies.SessionCookieName)
+	// TODO: Investigate trx behavior here
+	return func(ctx *gin.Context) {
+		token, err := ctx.Cookie(cookies.SessionCookieName)
 		if err != nil || token == "" {
-			responses.Error(c, http.StatusUnauthorized, "unauthorized")
-			c.Abort()
+			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+			ctx.Abort()
 			return
 		}
 
-		session, err := sessionService.ValidateSessionToken(token)
+		session, err := sessionService.ValidateSessionToken(ctx, token)
 		if err != nil {
-			responses.Error(c, http.StatusUnauthorized, "unauthorized")
-			c.Abort()
+			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+			ctx.Abort()
 			return
 		}
 		if session == nil {
-			responses.Error(c, http.StatusUnauthorized, "unauthorized")
-			c.Abort()
+			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+			ctx.Abort()
 			return
 		}
 
-		user, err := userService.FindById(session.UserID)
+		user, err := userService.FindById(ctx, session.UserID)
 		if err != nil {
-			responses.Error(c, http.StatusInternalServerError, "internal error")
-			c.Abort()
+			responses.Error(ctx, http.StatusInternalServerError, "internal error")
+			ctx.Abort()
 			return
 		}
 		if user == nil {
-			responses.Error(c, http.StatusUnauthorized, "unauthorized")
-			c.Abort()
+			responses.Error(ctx, http.StatusUnauthorized, "unauthorized")
+			ctx.Abort()
 			return
 		}
 
-		c.Set(SessionContextKey, map[string]any{
+		ctx.Set(SessionContextKey, map[string]any{
 			"session": session,
 			"user":    user,
 		})
-		c.Next()
+		ctx.Next()
 	}
 }

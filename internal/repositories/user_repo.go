@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/domainerrors"
@@ -18,10 +19,10 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	}
 }
 
-func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
 
-	err := r.DB().Where("email = ?", email).First(&user).Error
+	err := r.DB(ctx).Where("email = ?", email).First(&user).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -33,8 +34,8 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) Create(user *models.User) (*models.User, error) {
-	if err := r.DB().Create(user).Error; err != nil {
+func (r *UserRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
+	if err := r.DB(ctx).Create(user).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return nil, domainerrors.ErrConflict
 		}
@@ -43,9 +44,9 @@ func (r *UserRepository) Create(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) FindById(userID uint64) (*models.User, error) {
+func (r *UserRepository) FindById(ctx context.Context, userID uint64) (*models.User, error) {
 	var user models.User
-	err := r.DB().First(&user, userID).Error
+	err := r.DB(ctx).First(&user, userID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, domainerrors.ErrNotFound
@@ -55,6 +56,6 @@ func (r *UserRepository) FindById(userID uint64) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateRole(userID uint64, newRole string) error {
-	return r.DB().Model(&models.User{}).Where("id = ?", userID).Update("role", newRole).Error
+func (r *UserRepository) UpdateRole(ctx context.Context, userID uint64, newRole string) error {
+	return r.DB(ctx).Model(&models.User{}).Where("id = ?", userID).Update("role", newRole).Error
 }

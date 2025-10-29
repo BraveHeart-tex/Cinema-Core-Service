@@ -13,7 +13,7 @@ func GuestOnlyMiddleware(sessionService *services.SessionService) gin.HandlerFun
 	return func(ctx *gin.Context) {
 		token, err := ctx.Cookie(cookies.SessionCookieName)
 		if err == nil && token != "" {
-			session, err := sessionService.ValidateSessionToken(token)
+			session, err := sessionService.ValidateSessionToken(ctx, token)
 			if err == nil && session != nil {
 				responses.Error(ctx, http.StatusForbidden, "forbidden")
 				ctx.Abort()

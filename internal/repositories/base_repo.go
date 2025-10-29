@@ -1,6 +1,9 @@
 package repositories
 
 import (
+	"context"
+
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
 	"gorm.io/gorm"
 )
 
@@ -15,11 +18,9 @@ func NewBaseRepository(db *gorm.DB) BaseRepository {
 }
 
 // DB returns the database connection
-func (r *BaseRepository) DB() *gorm.DB {
+func (r *BaseRepository) DB(ctx context.Context) *gorm.DB {
+	if tx := db.TxFromCtx(ctx); tx != nil {
+		return tx
+	}
 	return r.db
-}
-
-// WithTx returns a new repository with the given transaction
-func (r *BaseRepository) WithTx(tx *gorm.DB) {
-	r.db = tx
 }

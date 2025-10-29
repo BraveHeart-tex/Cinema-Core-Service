@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"errors"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
@@ -27,8 +28,8 @@ func NewService(userRepo *repositories.UserRepository) *Service {
 
 // PromoteToAdmin promotes a regular user to admin role.
 // Returns ServiceError if user not found, already admin, or update fails.
-func (s *Service) PromoteToAdmin(userID uint64) error {
-	user, err := s.userRepo.FindById(userID)
+func (s *Service) PromoteToAdmin(ctx context.Context, userID uint64) error {
+	user, err := s.userRepo.FindById(ctx, userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return apperrors.NewNotFound("target user not found")
@@ -43,7 +44,7 @@ func (s *Service) PromoteToAdmin(userID uint64) error {
 		return apperrors.NewConflict("target user is already an admin")
 	}
 
-	if err := s.userRepo.UpdateRole(user.Id, models.AdminRole); err != nil {
+	if err := s.userRepo.UpdateRole(ctx, user.Id, models.AdminRole); err != nil {
 		return apperrors.NewInternalError("failed to update user role")
 	}
 
@@ -51,8 +52,8 @@ func (s *Service) PromoteToAdmin(userID uint64) error {
 }
 
 // DemoteFromAdmin demotes an admin user to regular user role.
-func (s *Service) DemoteFromAdmin(userID uint64) error {
-	user, err := s.userRepo.FindById(userID)
+func (s *Service) DemoteFromAdmin(ctx context.Context, userID uint64) error {
+	user, err := s.userRepo.FindById(ctx, userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return apperrors.NewNotFound("target user not found")
@@ -67,7 +68,7 @@ func (s *Service) DemoteFromAdmin(userID uint64) error {
 		return apperrors.NewConflict("target user is already a regular user")
 	}
 
-	if err := s.userRepo.UpdateRole(user.Id, models.UserRole); err != nil {
+	if err := s.userRepo.UpdateRole(ctx, user.Id, models.UserRole); err != nil {
 		return apperrors.NewInternalError("failed to update user role")
 	}
 
@@ -75,8 +76,8 @@ func (s *Service) DemoteFromAdmin(userID uint64) error {
 }
 
 // GetUserByID fetches a user by their ID.
-func (s *Service) GetUserByID(userID uint64) (*models.User, error) {
-	user, err := s.userRepo.FindById(userID)
+func (s *Service) GetUserByID(ctx context.Context, userID uint64) (*models.User, error) {
+	user, err := s.userRepo.FindById(ctx, userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
 			return nil, apperrors.NewNotFound("user not found")

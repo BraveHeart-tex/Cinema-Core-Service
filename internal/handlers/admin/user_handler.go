@@ -26,7 +26,7 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Services.Users.PromoteToAdmin(userID)
+	err = h.Services.Users.PromoteToAdmin(ctx, userID)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
@@ -74,7 +74,7 @@ func (h *AdminHandler) DemoteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Services.Users.DemoteFromAdmin(userID)
+	err = h.Services.Users.DemoteFromAdmin(ctx, userID)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
