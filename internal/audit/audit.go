@@ -9,7 +9,7 @@ import (
 
 type AuditEvent struct {
 	Event     string                 `json:"event"`
-	UserID    uint                   `json:"user_id,omitempty"`
+	UserID    uint64                 `json:"user_id,omitempty"`
 	Email     string                 `json:"email,omitempty"`
 	Success   bool                   `json:"success"`
 	ErrorMsg  string                 `json:"error,omitempty"`
@@ -52,7 +52,7 @@ func LogEvent(ctx *gin.Context, e AuditEvent) {
 
 	fields := []zap.Field{
 		zap.String("event", e.Event),
-		zap.Uint("user_id", e.UserID),
+		zap.Uint64("user_id", e.UserID),
 		zap.String("email", e.Email),
 		zap.Bool("success", e.Success),
 		zap.String("error", e.ErrorMsg),

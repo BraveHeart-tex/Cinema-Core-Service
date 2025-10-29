@@ -39,3 +39,32 @@ func (s *Service) CreateTheater(req theater.CreateTheaterRequest) (*models.Theat
 
 	return result, nil
 }
+
+func (s *Service) UpdateTheaterName(theaterID uint64, name string) (*models.Theater, error) {
+	theater, err := s.repo.FindById(theaterID)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, apperrors.NewNotFound("theater not found")
+		}
+		return nil, apperrors.NewInternalError("failed to fetch theater")
+	}
+
+	if theater == nil {
+		return nil, apperrors.NewNotFound("theater not found")
+	}
+
+	err = s.repo.Update(theaterID, name)
+	if err != nil {
+		if errors.Is(err, domainerrors.ErrConflict) {
+			return nil, apperrors.NewConflict("theater with this name already exists")
+		}
+		if errors.Is(err, domainerrors.ErrNotFound) {
+			return nil, apperrors.NewNotFound("theater not found")
+		}
+
+		return nil, apperrors.NewInternalError("failed to update theater")
+	}
+
+	theater.Name = name
+	return theater, nil
+}

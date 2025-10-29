@@ -6,8 +6,8 @@ import (
 
 type AdminAuditParams struct {
 	Action           string
-	TargetUserID     uint
-	PerformedByID    uint
+	TargetUserID     uint64
+	PerformedByID    uint64
 	PerformedByEmail string
 	Success          bool
 	ErrorMsg         string

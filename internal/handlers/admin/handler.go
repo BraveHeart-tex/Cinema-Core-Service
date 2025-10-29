@@ -24,7 +24,7 @@ func NewAdminHandler(services *adminServices.Services) *AdminHandler {
 
 // getCurrentAdmin extracts the currently authenticated admin user from the context.
 // Returns userID and email. This is a shared helper used by all domain handlers.
-func (h *AdminHandler) getCurrentAdmin(ctx *gin.Context) (uint, string) {
+func (h *AdminHandler) getCurrentAdmin(ctx *gin.Context) (uint64, string) {
 	val, exists := ctx.Get(middleware.SessionContextKey)
 	if exists && val != nil {
 		user := val.(map[string]any)["user"].(*models.User)

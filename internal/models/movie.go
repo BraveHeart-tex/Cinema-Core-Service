@@ -1,7 +1,7 @@
 package models
 
 type Movie struct {
-	ID              uint    `gorm:"primaryKey"`
+	ID              uint64  `gorm:"primaryKey"`
 	Title           string  `gorm:"type:varchar(255);not null"`
 	Description     string  `gorm:"type:text"`
 	PosterImage     string  `gorm:"type:varchar(512)"`

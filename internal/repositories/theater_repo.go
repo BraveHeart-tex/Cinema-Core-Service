@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 
 	dbutils "github.com/BraveHeart-tex/Cinema-Core-Service/internal/dbUtils"
@@ -40,7 +41,7 @@ func (r *TheaterRepository) Delete() error {
 	return r.db.Delete(&models.Theater{}).Error
 }
 
-func (r *TheaterRepository) Update(id uint, name string) error {
+func (r *TheaterRepository) Update(id uint64, name string) error {
 	result := r.db.Model(&models.Theater{}).
 		Where("id = ?", id).Updates(map[string]any{"name": name})
 
@@ -58,9 +59,12 @@ func (r *TheaterRepository) Update(id uint, name string) error {
 	return nil
 }
 
-func (r *TheaterRepository) FindById(theaterId uint) (*models.Theater, error) {
+func (r *TheaterRepository) FindById(theaterId uint64) (*models.Theater, error) {
 	var theater models.Theater
 	if err := r.db.First(&theater, theaterId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainerrors.ErrNotFound
+		}
 		return nil, err
 	}
 	return &theater, nil

@@ -1,6 +1,6 @@
 package genre
 
 type UpdateGenreResponse struct {
-	Id   uint   `json:"id"`
+	Id   uint64 `json:"id"`
 	Name string `json:"name"`
 }

@@ -37,7 +37,7 @@ func NewService(repo *repositories.ShowtimeRepository, movieRepo *repositories.M
 // CreateShowtime creates a new showtime with the provided movieID, theaterID, start time, end time, and base price.
 // It returns ServiceError if start time is after end time, base price is negative, movie or theater is not found, or showtime overlaps with another showtime.
 // Otherwise, it returns the created showtime object.
-func (s *Service) CreateShowtime(movieID, theaterID uint, start, end time.Time, basePrice float64) (*models.Showtime, error) {
+func (s *Service) CreateShowtime(movieID, theaterID uint64, start, end time.Time, basePrice float64) (*models.Showtime, error) {
 	if start.After(end) || start.Equal(end) {
 		return nil, apperrors.NewBadRequest("start time must be before end time")
 	}

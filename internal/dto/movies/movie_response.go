@@ -1,7 +1,7 @@
 package movies
 
 type MovieResponse struct {
-	ID              uint            `json:"id"`
+	ID              uint64          `json:"id"`
 	Title           string          `json:"title"`
 	Description     string          `json:"description"`
 	PosterImage     string          `json:"poster_image"`
@@ -10,6 +10,6 @@ type MovieResponse struct {
 }
 
 type GenreResponse struct {
-	ID   uint   `json:"id"`
+	ID   uint64 `json:"id"`
 	Name string `json:"name"`
 }

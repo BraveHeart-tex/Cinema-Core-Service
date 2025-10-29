@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Theater struct {
-	ID        uint   `gorm:"primaryKey"`
+	ID        uint64 `gorm:"primaryKey"`
 	Name      string `gorm:"varchar(255);uniqueIndex;not null"`
 	CreatedAt time.Time
 }

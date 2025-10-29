@@ -42,7 +42,7 @@ func (s *Service) CreateGenre(name string) (*models.Genre, error) {
 
 // UpdateGenre updates an existing genre's name.
 // Returns ServiceError if genre not found, name conflict, or update fails.
-func (s *Service) UpdateGenre(genreID uint, newName string) (*models.Genre, error) {
+func (s *Service) UpdateGenre(genreID uint64, newName string) (*models.Genre, error) {
 	if len(newName) == 0 || len(newName) > 100 {
 		return nil, apperrors.NewBadRequest("genre name must be between 1 and 100 characters")
 	}
@@ -74,7 +74,7 @@ func (s *Service) UpdateGenre(genreID uint, newName string) (*models.Genre, erro
 }
 
 // DeleteGenre deletes a genre by ID.
-func (s *Service) DeleteGenre(genreID uint) error {
+func (s *Service) DeleteGenre(genreID uint64) error {
 	genre, err := s.genreRepo.FindById(genreID)
 
 	if genre == nil {

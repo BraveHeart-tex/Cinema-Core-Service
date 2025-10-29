@@ -25,7 +25,7 @@ var (
 	activityCheckInterval = 1 * time.Hour       // 1 hour
 )
 
-func (s *SessionService) CreateSession(userID uint) (*models.SessionWithToken, error) {
+func (s *SessionService) CreateSession(userID uint64) (*models.SessionWithToken, error) {
 	now := time.Now()
 	id, err := utils.GenerateSecureRandomString()
 	if err != nil {

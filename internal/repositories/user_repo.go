@@ -43,7 +43,7 @@ func (r *UserRepository) Create(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) FindById(userID uint) (*models.User, error) {
+func (r *UserRepository) FindById(userID uint64) (*models.User, error) {
 	var user models.User
 	err := r.DB().First(&user, userID).Error
 	if err != nil {
@@ -55,6 +55,6 @@ func (r *UserRepository) FindById(userID uint) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateRole(userID uint, newRole string) error {
+func (r *UserRepository) UpdateRole(userID uint64, newRole string) error {
 	return r.DB().Model(&models.User{}).Where("id = ?", userID).Update("role", newRole).Error
 }

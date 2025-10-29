@@ -28,7 +28,7 @@ func (r *GenreRepository) CreateGenre(genre *models.Genre) (*models.Genre, error
 	return genre, nil
 }
 
-func (r *GenreRepository) FindMany(genreIDs []uint) ([]models.Genre, error) {
+func (r *GenreRepository) FindMany(genreIDs []uint64) ([]models.Genre, error) {
 	var genres []models.Genre
 	if err := r.db.Find(&genres, genreIDs).Error; err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (r *GenreRepository) FindMany(genreIDs []uint) ([]models.Genre, error) {
 	return genres, nil
 }
 
-func (r *GenreRepository) FindById(genreID uint) (*models.Genre, error) {
+func (r *GenreRepository) FindById(genreID uint64) (*models.Genre, error) {
 	var genre models.Genre
 	if err := r.db.First(&genre, genreID).Error; err != nil {
 		return nil, err
@@ -44,13 +44,13 @@ func (r *GenreRepository) FindById(genreID uint) (*models.Genre, error) {
 	return &genre, nil
 }
 
-func (r *GenreRepository) Delete(genreID uint) error {
+func (r *GenreRepository) Delete(genreID uint64) error {
 	return r.db.Delete(&models.Genre{}, genreID).Error
 }
 
-func (r *GenreRepository) UpdateGenre(id uint, name string) error {
+func (r *GenreRepository) UpdateGenre(genreID uint64, name string) error {
 	result := r.db.Model(&models.Genre{}).
-		Where("id = ?", id).
+		Where("id = ?", genreID).
 		Updates(map[string]any{"name": name})
 
 	if result.Error != nil {

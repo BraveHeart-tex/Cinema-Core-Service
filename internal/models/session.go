@@ -4,7 +4,7 @@ import "time"
 
 type Session struct {
 	ID             string    `gorm:"primaryKey"`
-	UserID         uint      `gorm:"not null;index"`
+	UserID         uint64    `gorm:"not null;index"`
 	User           User      `gorm:"constraint:OnDelete:CASCADE;"`
 	SecretHash     []byte    `gorm:"not null"`
 	LastVerifiedAt time.Time `gorm:"autoUpdateTime"`

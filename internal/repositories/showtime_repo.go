@@ -19,7 +19,7 @@ func (r *ShowtimeRepository) Create(showtime *models.Showtime) error {
 	return r.db.Create(showtime).Error
 }
 
-func (r *ShowtimeRepository) ExistsOverlap(theaterID uint, start, end time.Time) (bool, error) {
+func (r *ShowtimeRepository) ExistsOverlap(theaterID uint64, start, end time.Time) (bool, error) {
 	var count int64
 	err := r.db.Model(&models.Showtime{}).
 		Where("theater_id = ? AND start_time < ? AND end_time > ?", theaterID, end, start).

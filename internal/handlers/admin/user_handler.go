@@ -26,14 +26,14 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Services.Users.PromoteToAdmin(uint(userID))
+	err = h.Services.Users.PromoteToAdmin(userID)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
 				Success:      false,
 				Action:       "promote_user",
 				ErrorMsg:     se.Message,
-				TargetUserID: uint(userID),
+				TargetUserID: userID,
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
@@ -43,7 +43,7 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 			Success:      false,
 			Action:       "promote_user",
 			ErrorMsg:     err.Error(),
-			TargetUserID: uint(userID),
+			TargetUserID: userID,
 		})
 		responses.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -52,7 +52,7 @@ func (h *AdminHandler) PromoteUser(ctx *gin.Context) {
 	h.logAdminAction(ctx, audit.AdminAuditParams{
 		Success:      true,
 		Action:       "promote_user",
-		TargetUserID: uint(userID),
+		TargetUserID: userID,
 	})
 	responses.Success(ctx, gin.H{
 		"message": "user promoted to admin",
@@ -74,14 +74,14 @@ func (h *AdminHandler) DemoteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Services.Users.DemoteFromAdmin(uint(userID))
+	err = h.Services.Users.DemoteFromAdmin(userID)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
 				Success:      false,
 				Action:       "demote_user",
 				ErrorMsg:     se.Message,
-				TargetUserID: uint(userID),
+				TargetUserID: userID,
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
@@ -91,7 +91,7 @@ func (h *AdminHandler) DemoteUser(ctx *gin.Context) {
 			Success:      false,
 			Action:       "demote_user",
 			ErrorMsg:     err.Error(),
-			TargetUserID: uint(userID),
+			TargetUserID: userID,
 		})
 		responses.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -100,7 +100,7 @@ func (h *AdminHandler) DemoteUser(ctx *gin.Context) {
 	h.logAdminAction(ctx, audit.AdminAuditParams{
 		Success:      true,
 		Action:       "demote_user",
-		TargetUserID: uint(userID),
+		TargetUserID: userID,
 	})
 	responses.Success(ctx, gin.H{
 		"message": "user demoted to regular user",

@@ -143,6 +143,6 @@ func (s *UserService) SignIn(ctx context.Context, data SignInData) (*UserWithSes
 	return result, nil
 }
 
-func (s *UserService) FindById(userID uint) (*models.User, error) {
+func (s *UserService) FindById(userID uint64) (*models.User, error) {
 	return s.repo.FindById(userID)
 }

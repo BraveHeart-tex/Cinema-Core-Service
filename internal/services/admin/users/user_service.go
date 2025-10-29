@@ -27,7 +27,7 @@ func NewService(userRepo *repositories.UserRepository) *Service {
 
 // PromoteToAdmin promotes a regular user to admin role.
 // Returns ServiceError if user not found, already admin, or update fails.
-func (s *Service) PromoteToAdmin(userID uint) error {
+func (s *Service) PromoteToAdmin(userID uint64) error {
 	user, err := s.userRepo.FindById(userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -51,7 +51,7 @@ func (s *Service) PromoteToAdmin(userID uint) error {
 }
 
 // DemoteFromAdmin demotes an admin user to regular user role.
-func (s *Service) DemoteFromAdmin(userID uint) error {
+func (s *Service) DemoteFromAdmin(userID uint64) error {
 	user, err := s.userRepo.FindById(userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {
@@ -75,7 +75,7 @@ func (s *Service) DemoteFromAdmin(userID uint) error {
 }
 
 // GetUserByID fetches a user by their ID.
-func (s *Service) GetUserByID(userID uint) (*models.User, error) {
+func (s *Service) GetUserByID(userID uint64) (*models.User, error) {
 	user, err := s.userRepo.FindById(userID)
 	if err != nil {
 		if errors.Is(err, domainerrors.ErrNotFound) {

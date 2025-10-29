@@ -78,7 +78,7 @@ func (h *AdminHandler) UpdateGenre(ctx *gin.Context) {
 		return
 	}
 
-	updatedGenre, err := h.Services.Genres.UpdateGenre(uint(genreID), req.Name)
+	updatedGenre, err := h.Services.Genres.UpdateGenre(genreID, req.Name)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
@@ -125,14 +125,14 @@ func (h *AdminHandler) DeleteGenre(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Services.Genres.DeleteGenre(uint(genreID))
+	err = h.Services.Genres.DeleteGenre(genreID)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
 				Success:      false,
 				Action:       "delete_genre",
 				ErrorMsg:     se.Message,
-				TargetUserID: uint(genreID),
+				TargetUserID: genreID,
 			})
 			responses.Error(ctx, se.Code, se.Message)
 			return
@@ -142,7 +142,7 @@ func (h *AdminHandler) DeleteGenre(ctx *gin.Context) {
 			Success:      false,
 			Action:       "delete_genre",
 			ErrorMsg:     err.Error(),
-			TargetUserID: uint(genreID),
+			TargetUserID: genreID,
 		})
 		responses.Error(ctx, http.StatusInternalServerError, "Failed to delete genre")
 		return
@@ -151,7 +151,7 @@ func (h *AdminHandler) DeleteGenre(ctx *gin.Context) {
 	h.logAdminAction(ctx, audit.AdminAuditParams{
 		Success:      true,
 		Action:       "delete_genre",
-		TargetUserID: uint(genreID),
+		TargetUserID: genreID,
 	})
 
 	responses.Success(ctx, gin.H{
