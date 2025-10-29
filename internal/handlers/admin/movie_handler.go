@@ -2,6 +2,7 @@ package admin
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/audit"
@@ -19,7 +20,7 @@ func (h *AdminHandler) CreateMovie(ctx *gin.Context) {
 		return
 	}
 
-	movie, err := h.Services.Movies.CreateMovie(req)
+	movie, err := h.Services.Movies.CreateMovie(ctx, req)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			h.logAdminAction(ctx, audit.AdminAuditParams{
@@ -52,8 +53,49 @@ func (h *AdminHandler) CreateMovie(ctx *gin.Context) {
 
 // UpdateMovie updates an existing movie's details.
 func (h *AdminHandler) UpdateMovie(ctx *gin.Context) {
-	// TODO: Implement when UpdateMovie service method is ready
-	responses.Error(ctx, http.StatusNotImplemented, "not implemented")
+	idPram := ctx.Param("movieID")
+	movieID, err := strconv.ParseUint(idPram, 10, 64)
+	if err != nil {
+		responses.Error(ctx, http.StatusBadRequest, "invalid movie id")
+		return
+	}
+
+	var req movies.UpdateMovieRequest
+	if validationErr := ctx.ShouldBindJSON(&req); validationErr != nil {
+		responses.Error(ctx, http.StatusBadRequest, "invalid input: "+validationErr.Error())
+		return
+	}
+
+	updatedMovie, err := h.Services.Movies.UpdateMovie(ctx, movieID, req)
+	if err != nil {
+		if se, ok := err.(*apperrors.ServiceError); ok {
+			audit.LogAdminAction(ctx, audit.AdminAuditParams{
+				Action:   "update_movie",
+				Success:  false,
+				ErrorMsg: se.Message,
+			})
+			responses.Error(ctx, se.Code, se.Message)
+			return
+		}
+
+		audit.LogAdminAction(ctx, audit.AdminAuditParams{
+			Action:   "update_movie",
+			Success:  false,
+			ErrorMsg: err.Error(),
+		})
+		responses.Error(ctx, http.StatusInternalServerError, "Failed to update movie")
+		return
+	}
+
+	audit.LogAdminAction(ctx, audit.AdminAuditParams{
+		Action:  "update_movie",
+		Success: true,
+	})
+
+	responses.Success(ctx, gin.H{
+		"message": "movie updated successfully",
+		"movie":   movies.BuildMovieResponse(updatedMovie),
+	}, http.StatusOK)
 }
 
 // DeleteMovie deletes a movie by ID.

@@ -27,7 +27,7 @@ func (h *AdminHandler) CreateShowtime(ctx *gin.Context) {
 		responses.Error(ctx, http.StatusBadRequest, "invalid end time format")
 		return
 	}
-	showtime, err := h.Services.Showtimes.CreateShowtime(req.MovieID, req.TheaterID, startTime, endTime, req.BasePrice)
+	showtime, err := h.Services.Showtimes.CreateShowtime(ctx.Request.Context(), req.MovieID, req.TheaterID, startTime, endTime, req.BasePrice)
 	if err != nil {
 		if se, ok := err.(*apperrors.ServiceError); ok {
 			responses.Error(ctx, se.Code, se.Message)

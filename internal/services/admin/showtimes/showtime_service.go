@@ -1,6 +1,7 @@
 package showtimes
 
 import (
+	"context"
 	"time"
 
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/apperrors"
@@ -37,7 +38,7 @@ func NewService(repo *repositories.ShowtimeRepository, movieRepo *repositories.M
 // CreateShowtime creates a new showtime with the provided movieID, theaterID, start time, end time, and base price.
 // It returns ServiceError if start time is after end time, base price is negative, movie or theater is not found, or showtime overlaps with another showtime.
 // Otherwise, it returns the created showtime object.
-func (s *Service) CreateShowtime(movieID, theaterID uint64, start, end time.Time, basePrice float64) (*models.Showtime, error) {
+func (s *Service) CreateShowtime(ctx context.Context, movieID, theaterID uint64, start, end time.Time, basePrice float64) (*models.Showtime, error) {
 	if start.After(end) || start.Equal(end) {
 		return nil, apperrors.NewBadRequest("start time must be before end time")
 	}
@@ -45,7 +46,7 @@ func (s *Service) CreateShowtime(movieID, theaterID uint64, start, end time.Time
 		return nil, apperrors.NewBadRequest("base price must be non-negative")
 	}
 
-	movie, err := s.movieRepo.FindById(movieID)
+	movie, err := s.movieRepo.FindById(ctx, movieID)
 	if err != nil {
 		return nil, apperrors.NewInternalError("failed to fetch movie")
 	}

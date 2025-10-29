@@ -12,6 +12,6 @@ type UpdateMovieRequest struct {
 	Title           string   `json:"title" binding:"omitempty,min=1,max=255"`
 	Description     string   `json:"description" binding:"omitempty,max=2000"`
 	PosterImage     string   `json:"poster_image" binding:"omitempty,url"`
-	DurationMinutes int      `json:"duration_minutes" binding:"omitempty,gte=1,lte=600"`
+	DurationMinutes int      `json:"duration_minutes" binding:"gte=1,lte=600"`
 	GenreIDs        []uint64 `json:"genre_ids" binding:"omitempty,min=1,dive,gt=0"`
 }

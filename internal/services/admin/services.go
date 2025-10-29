@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/db"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/repositories"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/admin/genres"
 	"github.com/BraveHeart-tex/Cinema-Core-Service/internal/services/admin/movies"
@@ -26,6 +27,7 @@ func NewServices(
 	movieRepo *repositories.MovieRepository,
 	theaterRepo *repositories.TheaterRepository,
 	showtimeRepo *repositories.ShowtimeRepository,
+	txManager db.TxManager,
 ) *Services {
 	if userRepo == nil {
 		panic("UserRepository cannot be nil")
@@ -42,9 +44,12 @@ func NewServices(
 	if showtimeRepo == nil {
 		panic("ShowtimeRepository cannot be nil")
 	}
+	if txManager == nil {
+		panic("TxManager cannot be nil")
+	}
 	return &Services{
 		Users:     users.NewService(userRepo),
-		Movies:    movies.NewService(movieRepo, genreRepo),
+		Movies:    movies.NewService(movieRepo, genreRepo, txManager),
 		Genres:    genres.NewService(genreRepo),
 		Theaters:  theaters.NewService(theaterRepo),
 		Showtimes: showtimes.NewService(showtimeRepo, movieRepo, theaterRepo),

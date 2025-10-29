@@ -49,7 +49,7 @@ func main() {
 
 	// Admin services - each domain gets its own service
 	// Dependency flow: Repositories -> Domain Services -> Aggregator
-	adminServices := adminServices.NewServices(userRepo, genreRepo, movieRepo, theaterRepo, showtimeRepo)
+	adminServices := adminServices.NewServices(userRepo, genreRepo, movieRepo, theaterRepo, showtimeRepo, txManager)
 
 	// ================= Handlers =================
 	userHandler := handlers.NewUserHandler(userService, sessionService)
